@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor - Horário de Avaliações</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { 
+            /* Cores de Interface */
+            --primary: #640510;
+            --primary-hover: #ad5a64;
+            --bg-editor: #ddcccc;
+            --bg-workspace: #1f252b;
+            --border: #8f3b44;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+        
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-workspace); color: var(--text-main); overflow: hidden; }
+
+        /* SCROLLBARS CUSTOMIZADAS */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* PAINEL ESQUERDO (EDITOR) */
+        .editor { 
+            width: 400px; 
+            background: var(--bg-editor); 
+            border-right: 1px solid var(--border); 
+            padding: 24px; 
+            overflow-y: auto; 
+            height: 100vh; 
+            box-sizing: border-box; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.03);
+            z-index: 10;
+        }
+
+        .editor h2 { margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; }
+
+        /* Histórico */
+        .historico-box { background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border); max-height: 150px; overflow-y: auto; }
+        .historico-box h4 { margin: 0 0 10px 0; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px; }
+        .hist-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; border: 1px solid var(--border); font-size: 13px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .hist-item:hover { border-color: var(--primary); transform: translateX(2px); }
+        .btn-lixeira { background: transparent; color: #ef4444; border: none; padding: 4px; border-radius: 4px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; justify-content: center; }
+        .btn-lixeira:hover { background: #fee2e2; }
+
+        /* Configurações (Inputs) */
+        .card-config { margin-bottom: 25px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 500; margin-bottom: 6px; font-size: 12px; color: var(--text-main); }
+        
+        input[type="text"], input[type="date"], select, textarea { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 13px; 
+            font-family: inherit;
+            transition: all 0.2s;
+            background: #fff;
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        
+        input[type="file"] { font-size: 11px; padding: 8px; border: 1px dashed var(--border); border-radius: 8px; width: 100%; box-sizing: border-box; cursor: pointer; background: #f8fafc; }
+
+        /* Blocos de Dias e Matérias */
+        .dia-bloco { background: #f8fafc; border: 1px solid var(--border); border-left: 4px solid var(--primary); padding: 15px; margin-top: 15px; border-radius: 8px; position: relative; transition: all 0.3s ease; }
+        .btn-fechar-dia { position: absolute; right: 10px; top: 10px; border: none; background: #fee2e2; color: #ef4444; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-fechar-dia:hover { background: #ef4444; color: white; }
+        
+        .materia-item { background: white; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-top: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .materia-item select { margin-bottom: 8px; font-weight: 600; color: var(--primary); }
+        .materia-item textarea { min-height: 60px; resize: vertical; margin-bottom: 8px; }
+        
+        .btn-add-materia { width: 100%; background: transparent; border: 1px dashed #cbd5e1; color: var(--text-muted); padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; margin-top: 10px; font-weight: 500; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .btn-add-materia:hover { background: #f1f5f9; color: var(--text-main); border-color: #94a3b8; }
+
+        /* Botões de Ação Principais */
+        .btn-primario { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primario:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); }
+
+        /* PAINEL DIREITO (WORKSPACE & PREVIEW) */
+        .previa { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; overflow-y: auto; padding: 30px; position: relative; }
+        
+        .barra-ferramentas { 
+            background: rgba(255,255,255,0.9); 
+            padding: 12px 24px; 
+            border-radius: 100px; 
+            margin-bottom: 30px; 
+            display: flex; 
+            gap: 20px; 
+            align-items: center; 
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text-main); }
+        
+        .btn-acao { background: white; color: var(--text-main); padding: 8px 16px; border: 1px solid var(--border); border-radius: 50px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-acao:hover { background: #f8fafc; }
+        .btn-acao.save { color: #10b981; border-color: #10b981; }
+        .btn-acao.save:hover { background: #ecfdf5; }
+        .btn-acao.export { background: var(--text-main); color: white; border: none; }
+        .btn-acao.export:hover { background: #334155; transform: translateY(-1px); }
+
+        /* =========================================
+           ÁREA DO PDF (NOVO DESIGN MODERNO)
+           ========================================= */
+        #folha-pdf { 
+            width: 200mm; 
+            min-height: 140mm; 
+            height: auto; 
+            background: #FCFFD8; /* Fundo limpo e branco */
+            padding: 5mm; 
+            border: 7px solid #D9D9D9; 
+            box-sizing: border-box;
+            transform: scale(0.6); 
+            transform-origin: top center; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); 
+            display: block;
+            margin-bottom: 20px;
+            font-family: 'Inter', Arial, sans-serif;
+            color: var(--text-main);
+        }
+        
+        #wrapper-duplo { 
+            display: none; flex-direction: column; width: 210mm; background: white; 
+            min-height: 297mm; align-items: center; justify-content: flex-start; padding-top: 5mm;
+        }
+        .linha-corte { width: 100%; border-top: 1px dashed #cbd5e1; margin: 5mm 0; position: relative; }
+        .linha-corte:after { content: '✂ CORTE AQUI'; position: absolute; right: 10mm; top: -8px; font-size: 10px; color: #a8ada8; background: white; padding: 0 10px; font-weight: 500; font-family: sans-serif; }
+
+        .header-pdf { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #202122; padding-bottom: 15px; margin-bottom: 15px; }
+        .logo-escola-pdf { width: 85px; height: 85px; object-fit: contain; border-radius: 8px; }
+        .foto-prof-pdf { width: 80px; height: 80px; border: 2px solid #e2e8f0; object-fit: cover; border-radius: 50%; background: #f8fafc; }
+        
+        .header-texto { text-align: center; flex: 1; padding: 0 15px; }
+        .header-texto h1 { color: #0f172a; margin: 0 0 5px 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.5px; }
+        .header-texto p { margin: 2px 0; font-size: 14px; color: #64748b; font-weight: 500; }
+        .header-texto strong { color: #334155; font-weight: 700; }
+
+        .grid-pdf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; align-items: start; }
+        .col-pdf { background: #ffffff; border: 1px solid #640510; border-radius: 8px; min-height: 60px; height: auto; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .topo-dia { background: #e2b9be; color: var(--primary); text-align: center; padding: 8px 4px; font-size: 10px; font-weight: 700; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .materia-box { padding: 10px; border-bottom: 1px dashed #272926; }
+        .materia-box:last-child { border-bottom: none; }
+        .materia-tit { font-weight: 700; color: #0f172a; font-size: 11px; margin-bottom: 4px; }
+        .materia-cont { font-size: 10px; color: #475569; line-height: 1.4; word-wrap: break-word; }
+        
+        .materia-img { 
+            width: auto; 
+            max-width: 100%; 
+            height: 70px;   
+            object-fit: contain; 
+            margin: 8px auto 0 auto; 
+            display: block;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 1024px) {
+            #folha-pdf { transform: scale(0.5); }
+        }
+
+        @media (max-width: 900px) {
+            body { flex-direction: column; overflow-y: auto; }
+            .editor { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); box-shadow: none; }
+            #folha-pdf { transform: scale(0.4); margin-left: -90px; }
+            .barra-ferramentas { flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor">
+    <h2><i data-lucide="layout-template"></i> Editor de Horário</h2>
+    
+    <div class="historico-box">
+        <h4><i data-lucide="folder-clock" style="width:14px;height:14px;"></i> Meus Horários Salvos</h4>
+        <div id="lista-historico">
+            <!-- Renderizado via JS -->
+        </div>
+    </div>
+
+    <div class="card-config">
+        <div class="input-group">
+            <label>Sua Foto de Perfil</label>
+            <input type="file" id="inFotoProf" accept="image/*" onchange="uploadImg('outFoto', 'inFotoProf', 300)">
+        </div>
+        
+        <div class="input-group">
+            <label>Seu Nome (Como aparecerá no PDF)</label>
+            <input type="text" id="inNomeProf" placeholder="Ex: Profª. Sandra Miranda" oninput="atualizarPrevia()">
+        </div>
+
+        <div class="input-group">
+            <label>Nome da Instituição</label>
+            <input type="text" id="inEscola" value="Colégio Elicéu Monteiro Alves" oninput="atualizarPrevia()">
+        </div>
+        
+        <div style="display: flex; gap: 10px;">
+            <div class="input-group" style="flex: 1;">
+                <label>Turma / Série</label>
+                <select id="inSerie" onchange="atualizarPrevia()"></select>
+            </div>
+            <div class="input-group" style="flex: 1;">
+                <label>Bimestre</label>
+                <select id="inBimestre" onchange="atualizarPrevia()"></select>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label>Logo da Instituição (Manual)</label>
+            <input type="file" id="inLogoEscola" accept="image/*" onchange="uploadImg('pdfLogoEscola', 'inLogoEscola', 400)">
+        </div>
+    </div>
+
+    <button class="btn-primario" onclick="adicionarDia()">
+        <i data-lucide="calendar-plus" style="width:18px;height:18px;"></i> Adicionar Dia de Aula
+    </button>
+    
+    <div id="lista-dias-editor"></div>
+</div>
+
+<div class="previa">
+    <div class="barra-ferramentas">
+        <label class="checkbox-wrapper">
+            <input type="checkbox" id="checkDuplo" checked style="width:16px;height:16px;margin:0;cursor:pointer;"> 
+            Gerar 2 por folha (A4)
+        </label>
+        <button class="btn-acao save" onclick="salvarNoBanco()">
+            <i data-lucide="save" style="width:16px;height:16px;"></i> Salvar Progresso
+        </button>
+        <button class="btn-acao export" onclick="baixarPDF()">
+            <i data-lucide="download" style="width:16px;height:16px;"></i> Exportar PDF
+        </button>
+    </div>
+
+    <div id="folha-pdf">
+        <div class="header-pdf">
+            <img src="https://via.placeholder.com/60" id="pdfLogoEscola" class="logo-escola-pdf">
+            <div class="header-texto">
+                <h1 id="outEscola">COLÉGIO ELICÉU MONTEIRO ALVES</h1>
+                <p><strong>HORÁRIO DE AVALIAÇÕES</strong></p>
+                <p><span id="outSerie">---</span> | <span id="outBimestre">---</span></p>
+                <p>Professor(a): <strong id="outProf">---</strong></p>
+            </div>
+            <img src="https://via.placeholder.com/60" class="foto-prof-pdf" id="outFoto">
+        </div>
+        <div class="grid-pdf" id="outGrid"></div>
+    </div>
+
+    <div id="wrapper-duplo"></div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, getDoc, addDoc, doc, deleteDoc, serverTimestamp, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Dados reais do seu projeto Firebase unificados diretamente no arquivo
+    const firebaseConfig = {
+        apiKey: "AIzaSyB_pjYoRVsHvKoIKZ4iPnHhxGDO6vabC0E",
+        authDomain: "gerador-de-horarios-bfa7e.firebaseapp.com",
+        projectId: "gerador-de-horarios-bfa7e",
+        storageBucket: "gerador-de-horarios-bfa7e.firebasestorage.app",
+        messagingSenderId: "1080512413421",
+        appId: "1:1080512413421:web:a9cb2ab697c67e75b0d6e4"
+    };
+
+    // Inicializa o Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let disciplinasList = [];
+    let diasAtivos = 0;
+
+    async function init() {
+        const sSnap = await getDocs(collection(db, "series"));
+        const bSnap = await getDocs(collection(db, "bimestres"));
+        const dSnap = await getDocs(collection(db, "disciplinas"));
+        document.getElementById('inSerie').innerHTML = '<option value="">Selecione a Série</option>';
+        sSnap.forEach(d => document.getElementById('inSerie').innerHTML += `<option>${d.data().nome}</option>`);
+        document.getElementById('inBimestre').innerHTML = '<option value="">Selecione o Bimestre</option>';
+        bSnap.forEach(d => document.getElementById('inBimestre').innerHTML += `<option>${d.data().nome}</option>`);
+        disciplinasList = dSnap.docs.map(d => d.data().nome);
+        
+        const nomeGoogle = localStorage.getItem('prof_nome');
+        document.getElementById('inNomeProf').value = nomeGoogle;
+        document.getElementById('outProf').innerText = nomeGoogle;
+
+        const escSnap = await getDoc(doc(db, "configuracoes", "escola"));
+        if(escSnap.exists()) document.getElementById('pdfLogoEscola').src = escSnap.data().logo;
+        carregarHistorico(auth.currentUser.email);
+        atualizarPrevia();
+    }
+
+    async function compressImage(file, targetSize) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > height) {
+                        if (width > targetSize) { height *= targetSize / width; width = targetSize; }
+                    } else {
+                        if (height > targetSize) { width *= targetSize / height; height = targetSize; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                };
+            };
+        });
+    }
+
+    window.uploadImg = async (imgId, inputId, size) => {
+        const file = document.getElementById(inputId).files[0];
+        if(!file) return;
+        const base64 = await compressImage(file, size);
+        document.getElementById(imgId).src = base64;
+        atualizarPrevia();
+    };
+
+    window.uploadFotoMateria = async (inputId, hiddenId) => {
+        const file = document.getElementById(inputId).files[0];
+        if(!file) return;
+        const base64 = await compressImage(file, 200);
+        document.getElementById(hiddenId).value = base64;
+        atualizarPrevia();
+    };
+
+    function carregarHistorico(email) {
+        const q = query(collection(db, "horarios_salvos"), where("professor", "==", email), orderBy("criadoEm", "desc"));
+        onSnapshot(q, (snap) => {
+            const container = document.getElementById('lista-historico');
+            container.innerHTML = '';
+            if(snap.empty) {
+                container.innerHTML = '<p style="color:#94a3b8; font-size:12px; text-align:center; margin:10px 0;">Nenhum horário salvo ainda.</p>';
+                return;
+            }
+            snap.forEach(d => {
+                const item = document.createElement('div');
+                item.className = 'hist-item';
+                item.innerHTML = `
+                    <div onclick='window.carregarSchedule(${JSON.stringify(d.data())})' style="flex:1">
+                        <strong>${d.data().serie || 'Sem Turma'}</strong>
+                        <span style="color:#64748b; font-size:11px; display:block; margin-top:2px;">${d.data().bimestre || ''}</span>
+                    </div>
+                    <button class="btn-lixeira" onclick="excluirHorario('${d.id}', event)" title="Excluir">
+                        <i data-lucide="trash-2" style="width:16px;height:16px;"></i>
+                    </button>`;
+                container.appendChild(item);
+            });
+            lucide.createIcons();
+        });
+    }
+
+    window.excluirHorario = async (id, e) => {
+        e.stopPropagation();
+        if(confirm("Tem certeza que deseja excluir permanentemente este horário?")) await deleteDoc(doc(db, "horarios_salvos", id));
+    };
+
+    window.carregarSchedule = (dados) => {
+        document.getElementById('lista-dias-editor').innerHTML = '';
+        diasAtivos = 0;
+        document.getElementById('inEscola').value = dados.escola;
+        document.getElementById('inSerie').value = dados.serie;
+        document.getElementById('inBimestre').value = dados.bimestre;
+        
+        document.getElementById('inNomeProf').value = dados.professorNomeManual || dados.professor;
+
+        if(dados.logoEscola) document.getElementById('pdfLogoEscola').src = dados.logoEscola;
+        if(dados.fotoProf) document.getElementById('outFoto').src = dados.fotoProf;
+        dados.conteudo.forEach(dia => {
+            const idDia = adicionarDia();
+            const bloco = document.getElementById(`bloco-${idDia}`);
+            bloco.querySelector('.data-input').value = dia.data;
+            dia.materias.forEach(mat => {
+                const mId = addMateria(idDia);
+                const mDiv = document.getElementById(mId);
+                mDiv.querySelector('.m-sel').value = mat.nome;
+                mDiv.querySelector('.m-txt').value = mat.conteudo;
+                mDiv.querySelector('.m-img-base64').value = mat.imagem || "";
+            });
+        });
+        atualizarPrevia();
+    };
+
+    window.adicionarDia = () => {
+        if(diasAtivos >= 5) {
+            alert("O limite máximo é de 5 dias por folha.");
+            return null;
+        }
+        const id = Date.now();
+        const div = document.createElement('div');
+        div.className = 'dia-bloco';
+        div.id = `bloco-${id}`;
+        div.innerHTML = `
+            <button class="btn-fechar-dia" onclick="this.parentElement.remove();diasAtivos--;atualizarPrevia();" title="Remover dia">
+                <i data-lucide="x" style="width:14px;height:14px;"></i>
+            </button>
+            <label>Data da Avaliação:</label>
+            <input type="date" class="data-input" onchange="atualizarPrevia()">
+            <div id="m-cont-${id}"></div>
+            <button class="btn-add-materia" onclick="addMateria('${id}')">
+                <i data-lucide="plus-circle" style="width:14px;height:14px;"></i> Adicionar Disciplina
+            </button>
+        `;
+        document.getElementById('lista-dias-editor').appendChild(div);
+        lucide.createIcons();
+        diasAtivos++;
+        return id;
+    };
+
+    window.addMateria = (diaId) => {
+        const mId = "mat-" + Math.random().toString(36).substr(2, 9);
+        const div = document.createElement('div');
+        div.id = mId;
+        div.className = "m-item materia-item"; // Classe m-item adicionada para o seletor do Salvar funcionar
+        div.innerHTML = `
+            <select class="m-sel" onchange="atualizarPrevia()">
+                <option value="">Selecione a Disciplina</option>
+                ${disciplinasList.map(d=>`<option>${d}</option>`).join('')}
+            </select>
+            <textarea class="m-txt" placeholder="Descreva o conteúdo..." oninput="atualizarPrevia()"></textarea>
+            <label style="font-size:10px; color:#64748b; margin-top:5px; margin-bottom:2px;">Anexar Imagem (Opcional):</label>
+            <input type="file" onchange="uploadFotoMateria('${mId}-file', '${mId}-base')" id="${mId}-file">
+            <input type="hidden" class="m-img-base64" id="${mId}-base">
+        `;
+        document.getElementById(`m-cont-${diaId}`).appendChild(div);
+        return mId;
+    };
+
+    window.atualizarPrevia = () => {
+        document.getElementById('outEscola').innerText = document.getElementById('inEscola').value.toUpperCase();
+        document.getElementById('outSerie').innerText = document.getElementById('inSerie').value || "---";
+        document.getElementById('outBimestre').innerText = document.getElementById('inBimestre').value || "---";
+        document.getElementById('outProf').innerText = document.getElementById('inNomeProf').value;
+
+        const grid = document.getElementById('outGrid');
+        grid.innerHTML = '';
+        document.querySelectorAll('.dia-bloco').forEach(bloco => {
+            const dt = bloco.querySelector('.data-input').value;
+            let diaT = "DIA"; let dtBr = "---";
+            if(dt) { 
+                const dObj = new Date(dt + 'T00:00:00'); 
+                diaT = dObj.toLocaleDateString('pt-BR', {weekday:'long'}).split('-')[0]; 
+                dtBr = dObj.toLocaleDateString('pt-BR'); 
+            }
+            let html = `<div class="col-pdf"><div class="topo-dia">${diaT.toUpperCase()}<br>${dtBr}</div>`;
+            bloco.querySelectorAll('.m-sel').forEach((sel, i) => {
+                if(sel.value) {
+                    const img = bloco.querySelectorAll('.m-img-base64')[i].value;
+                    html += `<div class="materia-box"><div class="materia-tit">${sel.value}</div><div class="materia-cont">${bloco.querySelectorAll('.m-txt')[i].value.replace(/\n/g,'<br>')}</div>${img ? `<img src="${img}" class="materia-img">` : ''}</div>`;
+                }
+            });
+            grid.innerHTML += html + '</div>';
+        });
+    };
+
+    window.salvarNoBanco = async () => {
+        const conteudo = [];
+        document.querySelectorAll('.dia-bloco').forEach(bl => {
+            const mats = [];
+            bl.querySelectorAll('.m-item').forEach(mi => {
+                mats.push({
+                    nome: mi.querySelector('.m-sel').value, 
+                    conteudo: mi.querySelector('.m-txt').value, 
+                    imagem: mi.querySelector('.m-img-base64').value
+                });
+            });
+            conteudo.push({data: bl.querySelector('.data-input').value, materias: mats});
+        });
+        
+        const btnSave = document.querySelector('.btn-acao.save');
+        const originalHTML = btnSave.innerHTML;
+        btnSave.innerHTML = '<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Salvando...';
+        lucide.createIcons();
+
+        try {
+            await addDoc(collection(db, "horarios_salvos"), {
+                professor: auth.currentUser.email,
+                professorNomeManual: document.getElementById('inNomeProf').value,
+                escola: document.getElementById('inEscola').value,
+                serie: document.getElementById('inSerie').value,
+                bimestre: document.getElementById('inBimestre').value,
+                logoEscola: document.getElementById('pdfLogoEscola').src,
+                fotoProf: document.getElementById('outFoto').src,
+                conteudo: conteudo,
+                criadoEm: serverTimestamp()
+            });
+            btnSave.innerHTML = '<i data-lucide="check" style="width:16px;height:16px;"></i> Salvo com Sucesso!';
+            lucide.createIcons();
+            setTimeout(() => { btnSave.innerHTML = originalHTML; lucide.createIcons(); }, 3000);
+        } catch (error) {
+            alert("Erro ao salvar: " + error.message);
+            btnSave.innerHTML = originalHTML;
+            lucide.createIcons();
+        }
+    };
+
+    window.baixarPDF = () => {
+        const isDuplo = document.getElementById('checkDuplo').checked;
+        const folhaOriginal = document.getElementById('folha-pdf');
+        let elementoParaGerar = folhaOriginal;
+
+        // Estilos para spinner no botão
+        const styleSpinner = document.createElement('style');
+        styleSpinner.innerHTML = `.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`;
+        document.head.appendChild(styleSpinner);
+
+        const btnExport = document.querySelector('.btn-acao.export');
+        const originalText = btnExport.innerHTML;
+        btnExport.innerHTML = '<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Gerando...';
+        lucide.createIcons();
+
+        if (isDuplo) {
+            const wrapper = document.getElementById('wrapper-duplo');
+            wrapper.innerHTML = '';
+            wrapper.style.display = 'flex';
+            const clone1 = folhaOriginal.cloneNode(true);
+            const clone2 = folhaOriginal.cloneNode(true);
+            const divisor = document.createElement('div');
+            divisor.className = 'linha-corte';
+            [clone1, clone2].forEach(c => { c.style.transform = "scale(1)"; c.style.boxShadow = "none"; c.style.margin = "0 auto"; });
+            wrapper.appendChild(clone1);
+            wrapper.appendChild(divisor);
+            wrapper.appendChild(clone2);
+            elementoParaGerar = wrapper;
+        } else {
+            folhaOriginal.style.transform = "scale(1)";
+            folhaOriginal.style.boxShadow = "none";
+        }
+
+        const opt = {
+            margin: 0,
+            filename: `Horario_Avaliacoes_${document.getElementById('inSerie').value || 'Escolar'}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 3, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        setTimeout(() => {
+            html2pdf().set(opt).from(elementoParaGerar).save().then(() => {
+                // Restaura o visual da tela
+                folhaOriginal.style.transform = window.innerWidth <= 1024 ? "scale(0.5)" : "scale(0.6)";
+                if(window.innerWidth <= 900) folhaOriginal.style.transform = "scale(0.4)";
+                
+                folhaOriginal.style.boxShadow = "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)";
+                document.getElementById('wrapper-duplo').style.display = 'none';
+                
+                btnExport.innerHTML = originalText;
+                lucide.createIcons();
+            });
+        }, 500);
+    };
+
+    auth.onAuthStateChanged(u => u ? init() : window.location.href="index.html");
+</script>
+
+</body>
+</html>
