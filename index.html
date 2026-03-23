@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso - Horário de Avaliações</title>
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #640510; /* Indigo 600 */
+            --primary-hover: #b45965;
+            --bg-color: #f8fafc;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --surface: #ffffff;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh;
+            background-image: radial-gradient(circle at top right, #e0e7ff 0%, transparent 40%), 
+                              radial-gradient(circle at bottom left, #e0e7ff 0%, transparent 40%);
+        }
+
+        .container { 
+            background: var(--surface); 
+            padding: 48px 40px; 
+            border-radius: 16px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); 
+            width: 90%; 
+            max-width: 420px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .logo-container {
+            margin-bottom: 24px;
+        }
+
+        h1 { 
+            color: var(--text-main); 
+            margin: 0 0 8px 0; 
+            font-size: 24px; 
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        p { 
+            color: var(--text-muted); 
+            margin: 0 0 32px 0; 
+            font-size: 15px; 
+        }
+
+        .btn-acesso { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 12px; 
+            width: 100%; 
+            padding: 14px; 
+            margin-bottom: 16px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 10px; 
+            background: white; 
+            color: var(--text-main); 
+            font-size: 16px; 
+            font-weight: 500; 
+            cursor: pointer; 
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-acesso:hover { 
+            background: #f8fafc; 
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .btn-acesso.primary {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .btn-acesso.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-admin {
+            font-size: 14px; 
+            border: none; 
+            color: var(--text-muted); 
+            margin-top: 24px; 
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            transition: color 0.2s;
+        }
+
+        .btn-admin:hover {
+            color: var(--primary);
+        }
+
+        .loader { 
+            display: none; 
+            margin-top: 20px; 
+            color: var(--primary); 
+            font-weight: 500; 
+            font-size: 14px;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-container">
+        <div style="width: 72px; height: 72px; background: #e0e7ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: var(--primary);">
+            <i data-lucide="graduation-cap" style="width: 40px; height: 40px;"></i>
+        </div>
+    </div>
+    
+    <h1>GERADOR DE HORÁRIO ESCOLAR</h1>
+    <p>Acesse o Gerador de Horários</p>
+
+    <!-- Botão Professor -->
+    <button class="btn-acesso primary" onclick="fazerLogin('professor')">
+        <i data-lucide="log-in" style="width: 20px; height: 20px;"></i>
+        Entrar com Google
+    </button>
+
+    <!-- Botão Admin -->
+    <button class="btn-admin" onclick="fazerLogin('admin')">
+        <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
+        Acesso Administrativo
+    </button>
+
+    <div id="status" class="loader">
+        <i data-lucide="loader-2" class="spin" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 5px;"></i>
+        Verificando credenciais...
+    </div>
+</div>
+
+<!-- Rodapé de Direitos de Autor -->
+<div style="position: absolute; bottom: 24px; width: 100%; text-align: center; font-size: 13px; color: var(--text-muted);">
+    &copy; Março 2026 - Jerry Gleydison. Todos os direitos reservados.
+</div>
+
+<script>
+    // Inicializa os ícones
+    lucide.createIcons();
+    // Estilo para o loader girar
+    const style = document.createElement('style');
+    style.innerHTML = `.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`;
+    document.head.appendChild(style);
+</script>
+
+<script type="module">
+    // Importamos as configurações do seu arquivo firebase-config.js
+    import { auth, provider, db } from "./firebase-config.js";
+    import { signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    window.fazerLogin = async (tipoDesejado) => {
+        const status = document.getElementById('status');
+        status.style.display = 'block';
+        
+        try {
+            // 1. Abre a janelinha do Google
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            const emailLogado = user.email.toLowerCase().trim();
+
+            console.log("Logado como:", emailLogado);
+
+            if (tipoDesejado === 'admin') {
+                // 2. Busca na coleção 'admin' (singular)
+                const q = query(collection(db, "admin"), where("email", "==", emailLogado));
+                const snap = await getDocs(q);
+
+                if (!snap.empty) {
+                    console.log("Sucesso! É admin.");
+                    window.location.href = "admin.html";
+                } else {
+                    status.style.display = 'none';
+                    alert("Acesso Negado!\n\nO e-mail " + emailLogado + " não está cadastrado na coleção 'admin' do Firebase.");
+                    await signOut(auth);
+                }
+            } else {
+                // 3. Fluxo Professor (Livre)
+                localStorage.setItem('prof_email', emailLogado);
+                localStorage.setItem('prof_nome', user.displayName);
+                localStorage.setItem('prof_foto', user.photoURL);
+                window.location.href = "gerar.html";
+            }
+        } catch (error) {
+            console.error("Erro no login:", error);
+            status.style.display = 'none';
+            alert("Erro ao entrar: " + error.message);
+        }
+    };
+</script>
+
+</body>
+</html>
