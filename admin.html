@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Hoário de Avaliações</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-body: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+        }
+
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); margin: 0; padding-bottom: 50px; color: var(--text-main); }
+        
+        /* Cabeçalho Moderno */
+        .header { 
+            background: var(--surface); 
+            padding: 20px 40px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+        }
+        
+        .header-brand { display: flex; align-items: center; gap: 12px; }
+        .header-brand h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-main); }
+        .header-icon { color: var(--primary); }
+
+        .btn-sair { 
+            background: white; 
+            color: var(--text-muted); 
+            border: 1px solid var(--border); 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-sair:hover { background: #f8fafc; color: var(--text-main); }
+
+        /* Navegação */
+        .nav-tabs { 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px;
+            padding: 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .tab-btn { 
+            padding: 10px 20px; 
+            cursor: pointer; 
+            border: none; 
+            background: transparent; 
+            font-weight: 500; 
+            color: var(--text-muted); 
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tab-btn:hover { background: var(--bg-body); color: var(--text-main); }
+        .tab-btn.active { background: #e0e7ff; color: var(--primary); }
+
+        /* Conteúdo Principal */
+        .content { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { 
+            background: var(--surface); 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        h2 { color: var(--text-main); margin-top: 0; font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        h3 { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 15px; }
+
+        /* Formulários */
+        .form-row { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; flex-wrap: wrap; }
+        
+        input[type="text"], input[type="email"], input[type="file"] { 
+            padding: 10px 14px; 
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid var(--border); 
+            border-radius: 8px; 
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        button.add-btn { 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 500; 
+            font-size: 14px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        button.add-btn:hover { background: var(--primary-hover); }
+
+        /* Tabelas */
+        .table-container { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        .data-table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
+        .data-table th { background: #f8fafc; color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 12px; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover { background: #f8fafc; }
+
+        .btn-del { 
+            background: white; 
+            color: var(--danger); 
+            border: 1px solid #fecaca; 
+            padding: 6px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-del:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
+        /* Box Especiais */
+        .highlight-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-brand">
+        <i data-lucide="layout-dashboard" class="header-icon"></i>
+        <h1>Painel Administrativo</h1>
+    </div>
+    <button class="btn-sair" onclick="logout()">
+        <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Sair
+    </button>
+</div>
+
+<div class="nav-tabs">
+    <button class="tab-btn active" onclick="openTab(event, 'professores')">
+        <i data-lucide="users" style="width: 18px; height: 18px;"></i> Professores
+    </button>
+    <button class="tab-btn" onclick="openTab(event, 'disciplinas')">
+        <i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Disciplinas
+    </button>
+    <button class="tab-btn" onclick="openTab(event, 'config')">
+        <i data-lucide="settings-2" style="width: 18px; height: 18px;"></i> Configurações
+    </button>
+</div>
+
+<div class="content">
+    <!-- TAB PROFESSORES -->
+    <div id="professores" class="tab-content active">
+        <div class="card">
+            <h2><i data-lucide="user-plus"></i> Adicionar Professor</h2>
+            <div class="form-row">
+                <input type="text" id="pNome" placeholder="Nome Completo">
+                <input type="email" id="pEmail" placeholder="Email Google (ex: prof@gmail.com)">
+                <button class="add-btn" onclick="execCadastrar('professores', {nome: document.getElementById('pNome').value, email: document.getElementById('pEmail').value.toLowerCase().trim()}, ['pNome', 'pEmail'])">Cadastrar Acesso</button>
+            </div>
+            
+            <h3 style="margin-top: 30px;">Lista de Acessos Permitidos</h3>
+            <div class="table-container">
+                <table class="data-table" id="tabela-professores"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB DISCIPLINAS -->
+    <div id="disciplinas" class="tab-content">
+        <div class="card">
+            <h2><i data-lucide="library"></i> Gerenciar Disciplinas</h2>
+            <div class="form-row">
+                <input type="text" id="dNome" placeholder="Ex: Matemática, História...">
+                <button class="add-btn" onclick="execCadastrar('disciplinas', {nome: document.getElementById('dNome').value}, ['dNome'])">Adicionar Disciplina</button>
+            </div>
+            
+            <h3 style="margin-top: 30px;">Disciplinas Ativas</h3>
+            <div class="table-container">
+                <table class="data-table" id="tabela-disciplinas"></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB CONFIGURAÇÕES -->
+    <div id="config" class="tab-content">
+        
+        <!-- LOGO DA ESCOLA -->
+        <div class="card highlight-box">
+            <h2><i data-lucide="image"></i> Identidade Visual</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Logo oficial que aparecerá nos cabeçalhos dos PDFs gerados.</p>
+            <div class="form-row" style="align-items: center;">
+                <input type="file" id="fEscola" accept="image/*">
+                <button class="add-btn" onclick="salvarLogoEscola()">Salvar Imagem</button>
+            </div>
+            <div id="stLogo" style="font-size: 13px; font-weight: 500; color: #10b981; margin-top: 5px;"></div>
+        </div>
+
+        <div class="card">
+            <h2><i data-lucide="graduation-cap"></i> Estrutura Escolar</h2>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <!-- Séries -->
+                <div>
+                    <h3>Turmas / Séries</h3>
+                    <div class="form-row" style="margin-bottom: 15px;">
+                        <input type="text" id="sNome" placeholder="Ex: 1º Ano A">
+                        <button class="add-btn" onclick="execCadastrar('series', {nome: document.getElementById('sNome').value}, ['sNome'])">Add</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="tabela-series"></table>
+                    </div>
+                </div>
+
+                <!-- Bimestres -->
+                <div>
+                    <h3>Períodos / Bimestres</h3>
+                    <div class="form-row" style="margin-bottom: 15px;">
+                        <input type="text" id="bNome" placeholder="Ex: 1º Bimestre">
+                        <button class="add-btn" onclick="execCadastrar('bimestres', {nome: document.getElementById('bNome').value}, ['bNome'])">Add</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table" id="tabela-bimestres"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Dados reais do seu projeto Firebase unificados diretamente no arquivo
+    const firebaseConfig = {
+        apiKey: "AIzaSyB_pjYoRVsHvKoIKZ4iPnHhxGDO6vabC0E",
+        authDomain: "gerador-de-horarios-bfa7e.firebaseapp.com",
+        projectId: "gerador-de-horarios-bfa7e",
+        storageBucket: "gerador-de-horarios-bfa7e.firebasestorage.app",
+        messagingSenderId: "1080512413421",
+        appId: "1:1080512413421:web:a9cb2ab697c67e75b0d6e4"
+    };
+
+    // Inicializa o Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.logout = () => { signOut(auth); window.location.href = "index.html"; };
+    
+    window.openTab = (evt, tabName) => {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    };
+
+    // --- SALVAR LOGO ESCOLA (BASE64 - CUSTO ZERO) ---
+    window.salvarLogoEscola = async () => {
+        const file = document.getElementById('fEscola').files[0];
+        if(!file) return alert("Selecione uma imagem!");
+        
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async () => {
+            try {
+                await setDoc(doc(db, "configuracoes", "escola"), { logo: reader.result });
+                document.getElementById('stLogo').innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;vertical-align:middle;"></i> Logo atualizado com sucesso!';
+                lucide.createIcons();
+            } catch (e) { alert("Erro ao salvar logo"); }
+        };
+    };
+
+    window.execCadastrar = async (colecao, dados, inputs) => {
+        if(Object.values(dados).some(v => v === "")) return alert("Preencha todos os campos!");
+        await addDoc(collection(db, colecao), dados);
+        inputs.forEach(id => document.getElementById(id).value = "");
+    };
+
+    window.execExcluir = async (colecao, id) => {
+        if(confirm("Tem certeza que deseja excluir permanentemente?")) await deleteDoc(doc(db, colecao, id));
+    };
+
+    function listar(colecao, tabelaId, campo) {
+        onSnapshot(query(collection(db, colecao), orderBy(campo, "asc")), (snap) => {
+            const table = document.getElementById(tabelaId);
+            table.innerHTML = `<tr><th>Registro</th><th style="width: 80px; text-align: center;">Ação</th></tr>`;
+            snap.forEach(d => {
+                table.innerHTML += `<tr>
+                    <td><strong>${d.data().nome || d.data().email}</strong></td>
+                    <td style="text-align: center;">
+                        <button class="btn-del" onclick="execExcluir('${colecao}', '${d.id}')">Excluir</button>
+                    </td>
+                </tr>`;
+            });
+        });
+    }
+
+    listar('professores', 'tabela-professores', 'nome');
+    listar('disciplinas', 'tabela-disciplinas', 'nome');
+    listar('series', 'tabela-series', 'nome');
+    listar('bimestres', 'tabela-bimestres', 'nome');
+</script>
+</body>
+</html>
