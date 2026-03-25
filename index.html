@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acesso - Horário de Avaliações</title>
-    <!-- Fonte Inter -->
+    
+    <!-- TAGS PARA VIRAR APLICATIVO (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#640510">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://via.placeholder.com/192/640510/FFFFFF?text=CE">
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Ícones Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary: #640510; /* Indigo 600 */
+            --primary: #640510;
             --primary-hover: #b45965;
             --bg-color: #f8fafc;
             --text-main: #0f172a;
@@ -35,97 +41,30 @@
             padding: 48px 40px; 
             border-radius: 16px; 
             text-align: center; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); 
             width: 90%; 
             max-width: 420px;
             border: 1px solid #f1f5f9;
         }
 
-        .logo-container {
-            margin-bottom: 24px;
-        }
-
-        h1 { 
-            color: var(--text-main); 
-            margin: 0 0 8px 0; 
-            font-size: 24px; 
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        p { 
-            color: var(--text-muted); 
-            margin: 0 0 32px 0; 
-            font-size: 15px; 
-        }
+        .logo-container { margin-bottom: 24px; }
+        h1 { color: var(--text-main); margin: 0 0 8px 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        p { color: var(--text-muted); margin: 0 0 32px 0; font-size: 15px; }
 
         .btn-acesso { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 12px; 
-            width: 100%; 
-            padding: 14px; 
-            margin-bottom: 16px; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 10px; 
-            background: white; 
-            color: var(--text-main); 
-            font-size: 16px; 
-            font-weight: 500; 
-            cursor: pointer; 
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 14px; margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 10px; background: white; color: var(--text-main); font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
         }
 
-        .btn-acesso:hover { 
-            background: #f8fafc; 
-            border-color: #cbd5e1;
-            transform: translateY(-1px);
-        }
+        .btn-acesso:hover { background: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
+        .btn-acesso.primary { background: var(--primary); color: white; border-color: var(--primary); }
+        .btn-acesso.primary:hover { background: var(--primary-hover); }
 
-        .btn-acesso.primary {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
+        .btn-admin { font-size: 14px; border: none; color: var(--text-muted); margin-top: 24px; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: color 0.2s; }
+        .btn-admin:hover { color: var(--primary); }
 
-        .btn-acesso.primary:hover {
-            background: var(--primary-hover);
-        }
-
-        .btn-admin {
-            font-size: 14px; 
-            border: none; 
-            color: var(--text-muted); 
-            margin-top: 24px; 
-            background: transparent;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            width: 100%;
-            transition: color 0.2s;
-        }
-
-        .btn-admin:hover {
-            color: var(--primary);
-        }
-
-        .loader { 
-            display: none; 
-            margin-top: 20px; 
-            color: var(--primary); 
-            font-weight: 500; 
-            font-size: 14px;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
-        }
+        .loader { display: none; margin-top: 20px; color: var(--primary); font-weight: 500; font-size: 14px; }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -140,13 +79,11 @@
     <h1>GERADOR DE HORÁRIO ESCOLAR</h1>
     <p>Acesse o Gerador de Horários</p>
 
-    <!-- Botão Professor -->
     <button class="btn-acesso primary" onclick="fazerLogin('professor')">
         <i data-lucide="log-in" style="width: 20px; height: 20px;"></i>
         Entrar com Google
     </button>
 
-    <!-- Botão Admin -->
     <button class="btn-admin" onclick="fazerLogin('admin')">
         <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
         Acesso Administrativo
@@ -158,22 +95,19 @@
     </div>
 </div>
 
-<!-- Rodapé de Direitos de Autor -->
 <div style="position: absolute; bottom: 24px; width: 100%; text-align: center; font-size: 13px; color: var(--text-muted);">
-    &copy; Março 2026 - Jerry Gleydison. Todos os direitos reservados.
+    &copy; 2026 - Jerry Gleydison. Todos os direitos reservados.
 </div>
 
 <script>
-    // Inicializa os ícones
     lucide.createIcons();
-    // Estilo para o loader girar
-    const style = document.createElement('style');
-    style.innerHTML = `.spin { animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }`;
-    document.head.appendChild(style);
+    // Registrar o Service Worker para habilitar o botão de instalar App
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => console.log("PWA Ativo"));
+    }
 </script>
 
 <script type="module">
-    // Importamos as configurações do seu arquivo firebase-config.js
     import { auth, provider, db } from "./firebase-config.js";
     import { signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -183,40 +117,33 @@
         status.style.display = 'block';
         
         try {
-            // 1. Abre a janelinha do Google
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             const emailLogado = user.email.toLowerCase().trim();
 
-            console.log("Logado como:", emailLogado);
-
             if (tipoDesejado === 'admin') {
-                // 2. Busca na coleção 'admin' (singular)
                 const q = query(collection(db, "admin"), where("email", "==", emailLogado));
                 const snap = await getDocs(q);
 
                 if (!snap.empty) {
-                    console.log("Sucesso! É admin.");
                     window.location.href = "admin.html";
                 } else {
                     status.style.display = 'none';
-                    alert("Acesso Negado!\n\nO e-mail " + emailLogado + " não está cadastrado na coleção 'admin' do Firebase.");
+                    alert("Acesso Negado: " + emailLogado);
                     await signOut(auth);
                 }
             } else {
-                // 3. Fluxo Professor (Livre)
                 localStorage.setItem('prof_email', emailLogado);
                 localStorage.setItem('prof_nome', user.displayName);
                 localStorage.setItem('prof_foto', user.photoURL);
                 window.location.href = "gerar.html";
             }
         } catch (error) {
-            console.error("Erro no login:", error);
+            console.error(error);
             status.style.display = 'none';
-            alert("Erro ao entrar: " + error.message);
+            alert("Erro ao realizar login.");
         }
     };
 </script>
-
 </body>
 </html>
