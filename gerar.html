@@ -2,188 +2,760 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor Profissional - Colégio Elicéu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Editor - Colégio Elicéu</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root { 
+        :root {
             --primary: #640510;
-            --primary-hover: #ad5a64;
-            --bg-editor: #ddcccc;
-            --bg-workspace: #1f252b;
-            --border: #8f3b44;
+            --primary-hover: #8f2030;
+            --primary-light: #f9e8ea;
+            --bg-body: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
             --text-main: #0f172a;
+            --text-muted: #64748b;
+
+            /* Dimensões do documento: 21cm x 14.5cm */
+            --pdf-w: 210mm;
+            --pdf-h: 145mm;
         }
-        
-        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-workspace); color: var(--text-main); overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); color: var(--text-main); overflow-x: hidden; }
 
-        /* EDITOR (PAINEL ESQUERDO) */
-        .editor { width: 400px; background: var(--bg-editor); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; height: 100vh; box-sizing: border-box; z-index: 10; }
-        .editor h2 { font-size: 18px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-top: 0; }
+        /* ========================
+           HEADER
+        ======================== */
+        .app-header {
+            background: var(--primary);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            gap: 10px;
+        }
+        .app-header-info h1 { font-size: 15px; font-weight: 700; }
+        .app-header-info p { font-size: 11px; opacity: 0.8; margin-top: 1px; }
+        .btn-sair {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+            flex-shrink: 0;
+            min-height: 40px;
+        }
+        .btn-sair:hover { background: rgba(255,255,255,0.25); }
 
-        .historico-box { background: #f8fafc; padding: 10px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); max-height: 150px; overflow-y: auto; }
-        .hist-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; border: 1px solid var(--border); font-size: 13px; }
-        .btn-lixeira { background: transparent; color: #ef4444; border: none; cursor: pointer; }
+        /* ========================
+           ABAS MOBILE
+        ======================== */
+        .mobile-tabs {
+            display: none;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 53px;
+            z-index: 150;
+        }
+        .mobile-tabs button {
+            flex: 1;
+            padding: 14px 8px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-family: inherit;
+            min-height: 50px;
+        }
+        .mobile-tabs button.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: var(--primary-light);
+        }
 
-        .card-config { background: #fff; padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; color: #555; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 13px; margin-bottom: 10px; background: #fff; outline: none; }
-        
-        .dia-bloco { background: #fff; border-left: 5px solid var(--primary); padding: 15px; margin-top: 15px; border-radius: 8px; border: 1px solid #ddd; position: relative; }
-        .materia-item { border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; }
+        /* ========================
+           LAYOUT PRINCIPAL
+        ======================== */
+        .layout { display: flex; height: calc(100vh - 53px); }
 
-        /* PREVIEW (PAINEL DIREITO) */
-        .previa { flex: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 20px; }
-        .barra-ferramentas { background: white; padding: 10px 25px; border-radius: 100px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; position: sticky; top: 0; z-index: 50; border: 1px solid var(--border); }
+        /* ========================
+           PAINEL EDITOR (ESQUERDA)
+        ======================== */
+        .editor {
+            width: 360px;
+            min-width: 360px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            height: 100%;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
 
-        /* FOLHA DE TAMANHO 20x14cm - CABEÇALHO COMPACTO */
-        #folha-pdf { 
-            width: 200mm; 
-            min-height: 140mm; 
-            height: auto; 
-            background: #FCFFD8; 
-            padding: 3mm 6mm 6mm 6mm; /* 3mm no topo como solicitado */
-            border: 4px solid var(--primary); 
-            box-sizing: border-box; 
-            transform: scale(0.6); 
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin: 20px 0 10px;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        /* Histórico */
+        .historico-box {
+            background: var(--bg-body);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .hist-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+        .hist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+        .hist-item:hover { border-color: var(--primary); }
+        .hist-item:last-child { margin-bottom: 0; }
+        .btn-lixeira {
+            background: transparent;
+            color: #ef4444;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .btn-lixeira:hover { background: #fee2e2; }
+
+        /* Card de configuração */
+        .card-config {
+            background: var(--bg-body);
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+        input[type="text"], input[type="date"], select, textarea {
+            width: 100%;
+            padding: 11px 13px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 12px;
+            background: white;
+            outline: none;
+            transition: border-color 0.2s;
+            color: var(--text-main);
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 44px;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(100,5,16,0.08);
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1.5px dashed var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 12px;
+            background: white;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        /* Dia bloco */
+        .dia-bloco {
+            background: white;
+            border-left: 4px solid var(--primary);
+            padding: 14px;
+            margin-top: 12px;
+            border-radius: 8px;
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .dia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .dia-titulo { font-weight: 700; font-size: 13px; color: var(--primary); text-transform: uppercase; }
+        .btn-remover-dia {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            line-height: 1;
+            font-weight: 400;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+        .btn-remover-dia:hover { background: #fecaca; }
+
+        .materia-item {
+            background: var(--bg-body);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid var(--border);
+        }
+        .materia-item select, .materia-item textarea { margin-bottom: 8px; }
+        .materia-item textarea { min-height: 60px; resize: vertical; }
+        .btn-add-mat {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1.5px dashed var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 10px;
+            transition: all 0.2s;
+            font-family: inherit;
+            min-height: 44px;
+        }
+        .btn-add-mat:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+        .btn-add-dia {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 16px;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            min-height: 52px;
+        }
+        .btn-add-dia:hover { background: var(--primary-hover); }
+        .btn-add-dia:active { transform: scale(0.98); }
+
+        /* ========================
+           PAINEL PREVIEW (DIREITA)
+        ======================== */
+        .previa {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            padding: 20px;
+            background: #374151;
+            -webkit-overflow-scrolling: touch;
+        }
+        .barra-ferramentas {
+            background: white;
+            padding: 10px 18px;
+            border-radius: 100px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .barra-ferramentas label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-main);
+            text-transform: none;
+            letter-spacing: 0;
+            margin: 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-tool {
+            border: none;
+            padding: 9px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            min-height: 40px;
+        }
+        .btn-save { background: #3b82f6; color: white; }
+        .btn-save:hover { background: #2563eb; }
+        .btn-pdf { background: var(--primary); color: white; }
+        .btn-pdf:hover { background: var(--primary-hover); }
+        .btn-tool:active { transform: scale(0.97); }
+
+        /* ========================
+           FOLHA PDF — 21cm x 14.5cm
+           (tamanho exato para 2 por folha A4)
+        ======================== */
+        .folha-wrapper { 
+            transform: scale(0.55); 
             transform-origin: top center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
-            display: block; 
+            /* Compensar espaço extra causado pelo scale */
+            margin-bottom: calc((var(--pdf-h) * 0.55) - var(--pdf-h));
+        }
+
+        #folha-pdf {
+            width: var(--pdf-w);
+            height: var(--pdf-h);
+            background: #FCFFD8;
+            padding: 4mm 5mm;
+            border: 2.5px solid var(--primary);
+            box-sizing: border-box;
             color: #000;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
-
-        #wrapper-duplo { display: none; flex-direction: column; width: 210mm; background: white; min-height: 297mm; align-items: center; justify-content: flex-start; padding-top: 5mm; }
-        .linha-corte { width: 100%; border-top: 1px dashed #999; margin: 5mm 0; position: relative; }
-        .linha-corte:after { content: '✂ CORTE AQUI'; position: absolute; right: 10mm; top: -8px; font-size: 10px; color: #999; background: white; padding: 0 5px; }
-
-        /* CABEÇALHO SUPER COMPACTO */
-        .header-pdf { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid #000; 
-            padding-bottom: 2px; 
-            margin-bottom: 8px; 
+        .header-pdf {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 3.5mm;
+            margin-bottom: 3mm;
+            gap: 5mm;
+            flex-shrink: 0;
         }
-        .logo-escola-pdf { width: 65px; height: 65px; object-fit: contain; }
-        .foto-prof-pdf { width: 70px; height: 85px; border: 1.5px solid var(--primary); object-fit: cover; border-radius: 5px; background: white; }
-
+        .logo-escola-pdf { width: 55px; height: 55px; object-fit: contain; flex-shrink: 0; }
+        .foto-prof-pdf {
+            width: 45px;
+            height: 58px;
+            border: 1.5px solid var(--primary);
+            object-fit: cover;
+            border-radius: 3px;
+            background: #eee;
+            flex-shrink: 0;
+        }
         .header-texto { text-align: center; flex: 1; }
-        .header-texto h1 { margin: 0 !important; font-size: 22px; line-height: 1.0; padding-bottom: 2px; text-transform: uppercase; }
-        .header-texto p { margin: 0 !important; font-size: 12px; line-height: 1.1; padding: 1px 0; font-weight: 500; }
+        .header-texto h1 { font-size: 13px; line-height: 1.15; text-transform: uppercase; font-weight: 800; margin-bottom: 1.5px; }
+        .header-texto p { font-size: 9.5px; line-height: 1.35; font-weight: 500; }
 
-        .grid-pdf { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-        .col-pdf { background: #fff; border: 1px solid var(--primary); border-radius: 5px; min-height: 80px; }
-        .topo-dia { background: #e2b9be; color: var(--primary); text-align: center; padding: 5px; font-size: 10px; font-weight: bold; }
-        .materia-box { padding: 5px; border-bottom: 1px dotted #666; }
-        .materia-tit { font-weight: bold; font-size: 11px; color: var(--primary); }
-        .materia-cont { font-size: 10px; line-height: 1.2; }
-        .materia-img { width: auto; max-width: 100%; height: 115px; object-fit: contain; margin: 5px auto; display: block; }
+        .grid-pdf { 
+            display: grid; 
+            grid-template-columns: repeat(5, 1fr); 
+            gap: 2.5px; 
+            flex: 1;
+            overflow: hidden;
+        }
+        .col-pdf { 
+            background: #fff; 
+            border: 1px solid var(--primary); 
+            border-radius: 3px; 
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .topo-dia { 
+            background: #e2b9be; 
+            color: var(--primary); 
+            text-align: center; 
+            padding: 3px 2px; 
+            font-size: 8.5px; 
+            font-weight: 700; 
+            line-height: 1.3;
+            flex-shrink: 0;
+        }
+        .materia-box { 
+            padding: 2.5px 3.5px; 
+            border-bottom: 1px dotted #bbb; 
+        }
+        .materia-box:last-child { border-bottom: none; }
+        .materia-tit { font-weight: 700; font-size: 9px; color: var(--primary); }
+        .materia-cont { font-size: 8.5px; line-height: 1.3; color: #222; }
+        .materia-img { width: 100%; max-height: 70px; object-fit: contain; margin: 2px 0; display: block; }
+        .rodape-pdf { 
+            text-align: center; 
+            font-size: 7.5px; 
+            color: #666; 
+            margin-top: 2mm; 
+            border-top: 1px solid #ccc; 
+            padding-top: 2px;
+            flex-shrink: 0;
+        }
 
-        @media (max-width: 900px) {
-            body { flex-direction: column; overflow-y: auto; }
-            .editor { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 15px; }
-            #folha-pdf { transform: scale(0.45); margin-left: 0; width: 200mm; }
-            .barra-ferramentas { flex-wrap: wrap; justify-content: center; border-radius: 15px; }
+        /* ZONA DE RENDER OCULTA */
+        #pdf-render-zone { position: fixed; left: -9999px; top: 0; z-index: -1; background: white; }
+
+        /* ========================
+           TOAST NOTIFICATION
+        ======================== */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1e293b;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 9999;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+        #toast.success { background: #166534; }
+        #toast.error { background: #991b1b; }
+
+        /* ========================
+           RESPONSIVO MOBILE
+        ======================== */
+        @media (max-width: 768px) {
+            .layout { height: auto; flex-direction: column; }
+            .mobile-tabs { display: flex; top: 53px; }
+            
+            .editor {
+                width: 100%;
+                min-width: unset;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                display: none;
+                padding: 14px;
+                overflow-y: visible;
+            }
+            .editor.mobile-active { display: block; }
+
+            .previa { 
+                display: none; 
+                padding: 14px;
+                min-height: calc(100vh - 110px);
+            }
+            .previa.mobile-active { display: flex; }
+
+            .barra-ferramentas { 
+                border-radius: 12px; 
+                padding: 12px 14px; 
+                gap: 8px;
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Ajuste da escala da folha no mobile */
+            .folha-wrapper {
+                transform: scale(0.38);
+                transform-origin: top center;
+                margin-bottom: calc((var(--pdf-h) * 0.38) - var(--pdf-h));
+            }
+
+            /* Inputs maiores no mobile para evitar zoom automático */
+            input[type="text"], 
+            input[type="date"], 
+            select, 
+            textarea { font-size: 16px !important; }
+
+            .btn-add-dia { padding: 16px; font-size: 15px; }
+            .btn-tool { padding: 11px 16px; font-size: 14px; }
+        }
+
+        @media (max-width: 400px) {
+            .folha-wrapper {
+                transform: scale(0.32);
+                transform-origin: top center;
+                margin-bottom: calc((var(--pdf-h) * 0.32) - var(--pdf-h));
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="editor">
-    <div class="historico-box">
-        <h4><i data-lucide="folder-clock"></i> Meus Horários</h4>
-        <div id="lista-historico"></div>
+<div class="app-header">
+    <div class="app-header-info">
+        <h1>✏️ Editor de Horário</h1>
+        <p id="header-nome-prof">Carregando...</p>
     </div>
-
-    <h2>✍️ Editor de Horário</h2>
-    <div class="card-config">
-        <label>Sua Foto:</label>
-        <input type="file" accept="image/*" onchange="uploadImg('outFoto', this.id, 300)" id="f-prof">
-        <label>Logo da Escola:</label>
-        <input type="file" accept="image/*" onchange="uploadImg('pdfLogoEscola', this.id, 400)" id="f-logo">
-        <label>Seu Nome no PDF:</label>
-        <input type="text" id="inNomeProf" oninput="atualizarPrevia()">
-        <label>Escola:</label>
-        <input type="text" id="inEscola" value="Colégio Elicéu Monteiro Alves" oninput="atualizarPrevia()">
-        <label>Série:</label>
-        <select id="inSerie" onchange="atualizarPrevia()"></select>
-        <label>Bimestre:</label>
-        <select id="inBimestre" onchange="atualizarPrevia()"></select>
-    </div>
-
-    <button onclick="adicionarDia()" style="width:100%; background:var(--primary); color:white; padding:12px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">+ ADICIONAR DIA</button>
-    <div id="lista-dias-editor"></div>
+    <button class="btn-sair" onclick="sair()">
+        <i data-lucide="log-out" style="width:15px;height:15px;"></i> Sair
+    </button>
 </div>
 
-<div class="previa">
-    <div class="barra-ferramentas">
-        <label style="font-size:12px; cursor:pointer; display:flex; gap:5px;"><input type="checkbox" id="checkDuplo" checked> 2 por folha</label>
-        <button onclick="salvarNoBanco()" style="background:#007bff; color:white; border:none; padding:8px 15px; border-radius:20px; cursor:pointer;">💾 Salvar</button>
-        <button onclick="baixarPDF()" style="background:var(--primary); color:white; border:none; padding:8px 20px; border-radius:20px; font-weight:bold; cursor:pointer;">📥 Gerar PDF</button>
-    </div>
+<div class="mobile-tabs">
+    <button class="active" onclick="trocarAba('editor', this)">
+        <i data-lucide="pencil" style="width:15px;height:15px;"></i> Editar
+    </button>
+    <button onclick="trocarAba('previa', this)">
+        <i data-lucide="eye" style="width:15px;height:15px;"></i> Visualizar
+    </button>
+</div>
 
-    <div id="folha-pdf">
-        <div class="header-pdf">
-            <img src="" id="pdfLogoEscola" class="logo-escola-pdf">
-            <div class="header-texto">
-                <h1 id="outEscola">COLÉGIO ELICÉU MONTEIRO ALVES</h1>
-                <p><strong>HORÁRIO DE AVALIAÇÕES</strong></p>
-                <p><span id="outSerie">---</span> | <span id="outBimestre">---</span></p>
-                <p>Prof(a): <strong id="outProf">---</strong></p>
+<div class="layout">
+
+    <!-- PAINEL EDITOR -->
+    <div class="editor mobile-active" id="painel-editor">
+
+        <div class="historico-box">
+            <div class="hist-header">
+                <i data-lucide="folder-clock" style="width:16px;height:16px;color:var(--primary)"></i>
+                Meus Horários Salvos
             </div>
-            <img src="" class="foto-prof-pdf" id="outFoto">
+            <div id="lista-historico">
+                <p style="font-size:13px;color:var(--text-muted);text-align:center;padding:8px 0;">Nenhum horário salvo ainda.</p>
+            </div>
         </div>
-        <div class="grid-pdf" id="outGrid"></div>
+
+        <p class="section-title">Dados Gerais</p>
+        <div class="card-config">
+            <label>Sua Foto</label>
+            <input type="file" accept="image/*" onchange="uploadImg('outFoto', this.id, 300)" id="f-prof">
+            <label>Logo da Escola</label>
+            <input type="file" accept="image/*" onchange="uploadImg('pdfLogoEscola', this.id, 400)" id="f-logo">
+            <label>Seu Nome no PDF</label>
+            <input type="text" id="inNomeProf" placeholder="Ex: Maria Silva" oninput="atualizarPrevia()">
+            <label>Escola</label>
+            <input type="text" id="inEscola" value="Colégio Elicéu Monteiro Alves" oninput="atualizarPrevia()">
+            <label>Série / Turma</label>
+            <select id="inSerie" onchange="atualizarPrevia()">
+                <option value="">Carregando...</option>
+            </select>
+            <label>Bimestre</label>
+            <select id="inBimestre" onchange="atualizarPrevia()" style="margin-bottom:0">
+                <option value="">Carregando...</option>
+            </select>
+        </div>
+
+        <p class="section-title">Dias de Avaliação</p>
+        <div id="lista-dias-editor"></div>
+
+        <button class="btn-add-dia" onclick="adicionarDia()">
+            <i data-lucide="plus-circle" style="width:18px;height:18px;"></i>
+            Adicionar Dia (máx. 5)
+        </button>
+
+        <div style="height: 30px;"></div>
     </div>
-    <div id="wrapper-duplo"></div>
+
+    <!-- PAINEL PREVIEW -->
+    <div class="previa" id="painel-previa">
+        <div class="barra-ferramentas">
+            <label>
+                <input type="checkbox" id="checkDuplo" checked> 2 por folha A4
+            </label>
+            <button class="btn-tool btn-save" onclick="salvarNoBanco()">
+                <i data-lucide="save" style="width:15px;height:15px;"></i> Salvar
+            </button>
+            <button class="btn-tool btn-pdf" onclick="baixarPDF()">
+                <i data-lucide="file-down" style="width:15px;height:15px;"></i> Gerar PDF
+            </button>
+        </div>
+
+        <div class="folha-wrapper">
+            <div id="folha-pdf">
+                <div class="header-pdf">
+                    <img src="" id="pdfLogoEscola" class="logo-escola-pdf" alt="logo">
+                    <div class="header-texto">
+                        <h1 id="outEscola">COLÉGIO ELICÉU MONTEIRO ALVES</h1>
+                        <p><strong>HORÁRIO DE AVALIAÇÕES</strong></p>
+                        <p><span id="outSerie">---</span> | <span id="outBimestre">---</span></p>
+                        <p>Prof(a): <strong id="outProf">---</strong></p>
+                    </div>
+                    <img src="" class="foto-prof-pdf" id="outFoto" alt="foto">
+                </div>
+                <div class="grid-pdf" id="outGrid"></div>
+                <div class="rodape-pdf">Gerador de Horários — Colégio Elicéu Monteiro Alves</div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div id="pdf-render-zone"></div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+    lucide.createIcons();
+
+    window.trocarAba = (qual, btn) => {
+        document.querySelectorAll('.mobile-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (qual === 'editor') {
+            document.getElementById('painel-editor').classList.add('mobile-active');
+            document.getElementById('painel-previa').classList.remove('mobile-active');
+        } else {
+            document.getElementById('painel-previa').classList.add('mobile-active');
+            document.getElementById('painel-editor').classList.remove('mobile-active');
+        }
+    };
+
+    // Toast helper
+    window.showToast = (msg, tipo = 'success') => {
+        const t = document.getElementById('toast');
+        t.textContent = tipo === 'success' ? '✓ ' + msg : '✗ ' + msg;
+        t.className = 'show ' + tipo;
+        setTimeout(() => t.className = '', 3000);
+    };
+</script>
 
 <script type="module">
     import { db, auth } from "./firebase-config.js";
-    import { collection, getDocs, getDoc, addDoc, doc, deleteDoc, serverTimestamp, query, where, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { 
+        collection, getDocs, getDoc, addDoc, doc, deleteDoc, 
+        serverTimestamp, query, where, orderBy, onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     let disciplinasList = [];
     let diasAtivos = 0;
 
-    async function init() {
-        const sSnap = await getDocs(collection(db, "series"));
-        const bSnap = await getDocs(collection(db, "bimestres"));
-        const dSnap = await getDocs(collection(db, "disciplinas"));
-        
-        document.getElementById('inSerie').innerHTML = '<option value="">Série</option>';
-        sSnap.forEach(d => document.getElementById('inSerie').innerHTML += `<option>${d.data().nome}</option>`);
-        document.getElementById('inBimestre').innerHTML = '<option value="">Bimestre</option>';
-        bSnap.forEach(d => document.getElementById('inBimestre').innerHTML += `<option>${d.data().nome}</option>`);
-        disciplinasList = dSnap.docs.map(d => d.data().nome);
+    window.sair = () => { signOut(auth); window.location.href = "index.html"; };
 
-        const nGoogle = localStorage.getItem('prof_nome');
-        document.getElementById('inNomeProf').value = nGoogle;
-        
-        const escSnap = await getDoc(doc(db, "configuracoes", "escola"));
-        if(escSnap.exists()) document.getElementById('pdfLogoEscola').src = escSnap.data().logo;
-        
-        carregarHistorico(auth.currentUser.email);
-        lucide.createIcons();
-        atualizarPrevia();
+    // ========================
+    // INICIALIZAÇÃO
+    // ========================
+    async function init() {
+        try {
+            // CORREÇÃO: usa orderBy para garantir ordem consistente no recarregamento
+            const [sSnap, bSnap, dSnap] = await Promise.all([
+                getDocs(query(collection(db, "series"), orderBy("nome", "asc"))),
+                getDocs(query(collection(db, "bimestres"), orderBy("nome", "asc"))),
+                getDocs(query(collection(db, "disciplinas"), orderBy("nome", "asc")))
+            ]);
+
+            const selSerie = document.getElementById('inSerie');
+            const selBimestre = document.getElementById('inBimestre');
+
+            selSerie.innerHTML = '<option value="">Selecione a série</option>';
+            sSnap.forEach(d => {
+                selSerie.innerHTML += `<option value="${d.data().nome}">${d.data().nome}</option>`;
+            });
+
+            selBimestre.innerHTML = '<option value="">Selecione o bimestre</option>';
+            bSnap.forEach(d => {
+                selBimestre.innerHTML += `<option value="${d.data().nome}">${d.data().nome}</option>`;
+            });
+
+            // CORREÇÃO: disciplinas ordenadas de forma consistente
+            disciplinasList = dSnap.docs.map(d => d.data().nome);
+
+            const nGoogle = localStorage.getItem('prof_nome') || '';
+            document.getElementById('inNomeProf').value = nGoogle;
+            document.getElementById('header-nome-prof').textContent = nGoogle || auth.currentUser?.email || '';
+
+            // Carrega logo da escola
+            try {
+                const escSnap = await getDoc(doc(db, "configuracoes", "escola"));
+                if (escSnap.exists() && escSnap.data().logo) {
+                    document.getElementById('pdfLogoEscola').src = escSnap.data().logo;
+                }
+            } catch(e) { console.warn("Logo não encontrado"); }
+
+            carregarHistorico(auth.currentUser.email);
+            lucide.createIcons();
+            atualizarPrevia();
+
+        } catch(e) {
+            console.error("Erro na inicialização:", e);
+        }
     }
 
+    // ========================
+    // COMPRESSÃO DE IMAGEM
+    // ========================
     async function compress(file, target) {
         return new Promise((res) => {
-            const r = new FileReader(); r.readAsDataURL(file);
+            const r = new FileReader(); 
+            r.readAsDataURL(file);
             r.onload = (e) => {
-                const img = new Image(); img.src = e.target.result;
+                const img = new Image(); 
+                img.src = e.target.result;
                 img.onload = () => {
                     const c = document.createElement('canvas');
                     let w = img.width, h = img.height;
-                    const s = target / (w > h ? w : h);
-                    c.width = w * s; c.height = h * s;
+                    const s = target / Math.max(w, h);
+                    c.width = Math.round(w * s); 
+                    c.height = Math.round(h * s);
                     const ctx = c.getContext('2d');
-                    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0,0,c.width,c.height);
+                    ctx.fillStyle = "#FFFFFF"; 
+                    ctx.fillRect(0, 0, c.width, c.height);
                     ctx.drawImage(img, 0, 0, c.width, c.height);
-                    res(c.toDataURL('image/jpeg', 0.8));
+                    res(c.toDataURL('image/jpeg', 0.85));
                 };
             };
         });
@@ -191,131 +763,396 @@
 
     window.uploadImg = async (id, inputId, size) => {
         const file = document.getElementById(inputId).files[0];
-        if(file) { document.getElementById(id).src = await compress(file, size); atualizarPrevia(); }
+        if (file) { 
+            document.getElementById(id).src = await compress(file, size); 
+            atualizarPrevia(); 
+        }
     };
 
     window.uploadFotoMat = async (inputId, hidId) => {
         const file = document.getElementById(inputId).files[0];
-        if(file) { document.getElementById(hidId).value = await compress(file, 250); atualizarPrevia(); }
+        if (file) { 
+            document.getElementById(hidId).value = await compress(file, 250); 
+            atualizarPrevia(); 
+        }
     };
 
+    // ========================
+    // HISTÓRICO
+    // ========================
     function carregarHistorico(email) {
-        const q = query(collection(db, "horarios_salvos"), where("professor", "==", email), orderBy("criadoEm", "desc"));
+        // CORREÇÃO: orderBy garante que os dados apareçam na ordem correta após reload
+        const q = query(
+            collection(db, "horarios_salvos"), 
+            where("professor", "==", email), 
+            orderBy("criadoEm", "desc")
+        );
+        
         onSnapshot(q, (snap) => {
             const cont = document.getElementById('lista-historico');
+            if (snap.empty) {
+                cont.innerHTML = '<p style="font-size:13px;color:var(--text-muted);text-align:center;padding:8px 0;">Nenhum horário salvo ainda.</p>';
+                return;
+            }
             cont.innerHTML = '';
             snap.forEach(d => {
                 const item = document.createElement('div');
                 item.className = 'hist-item';
-                item.innerHTML = `<div onclick='window.loadSch(${JSON.stringify(d.data())})' style="flex:1"><strong>${d.data().serie}</strong></div><button class="btn-lixeira" onclick="delHist('${d.id}', event)"><i data-lucide="trash-2" style="width:14px;"></i></button>`;
+                const data = d.data();
+                const serie = data.serie || '—';
+                const bimestre = data.bimestre || '';
+                
+                item.innerHTML = `
+                    <div style="flex:1;min-width:0;overflow:hidden;" onclick='window.loadSch(${JSON.stringify(data)})'>
+                        <strong style="font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${serie}</strong>
+                        <span style="color:var(--text-muted);font-size:11px;">${bimestre}</span>
+                    </div>
+                    <button class="btn-lixeira" onclick="delHist('${d.id}', event)" title="Excluir">
+                        <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                    </button>`;
                 cont.appendChild(item);
             });
             lucide.createIcons();
+        }, (error) => {
+            console.error("Erro ao carregar histórico:", error);
         });
     }
 
-    window.delHist = async (id, e) => { e.stopPropagation(); if(confirm("Excluir?")) await deleteDoc(doc(db, "horarios_salvos", id)); };
+    window.delHist = async (id, e) => {
+        e.stopPropagation();
+        if (confirm("Excluir este horário?")) {
+            try {
+                await deleteDoc(doc(db, "horarios_salvos", id));
+            } catch(e) { showToast("Erro ao excluir", "error"); }
+        }
+    };
 
+    // ========================
+    // CARREGAR HORÁRIO SALVO
+    // CORREÇÃO: restaura estado completo de forma consistente
+    // ========================
     window.loadSch = (dados) => {
-        document.getElementById('lista-dias-editor').innerHTML = ''; diasAtivos = 0;
-        document.getElementById('inEscola').value = dados.escola;
-        document.getElementById('inSerie').value = dados.serie;
-        document.getElementById('inBimestre').value = dados.bimestre;
-        document.getElementById('inNomeProf').value = dados.professorNomeManual || dados.professor;
-        if(dados.logoEscola) document.getElementById('pdfLogoEscola').src = dados.logoEscola;
-        if(dados.fotoProf) document.getElementById('outFoto').src = dados.fotoProf;
-        dados.conteudo.forEach(dia => {
+        document.getElementById('lista-dias-editor').innerHTML = '';
+        diasAtivos = 0;
+
+        document.getElementById('inEscola').value = dados.escola || '';
+        document.getElementById('inNomeProf').value = dados.professorNomeManual || dados.professor || '';
+
+        // Restaura selects com os valores salvos
+        const selSerie = document.getElementById('inSerie');
+        const selBimestre = document.getElementById('inBimestre');
+        
+        // Tenta setar o valor; se não existir como option, adiciona temporariamente
+        selSerie.value = dados.serie || '';
+        if (selSerie.value !== dados.serie && dados.serie) {
+            selSerie.innerHTML += `<option value="${dados.serie}" selected>${dados.serie}</option>`;
+            selSerie.value = dados.serie;
+        }
+
+        selBimestre.value = dados.bimestre || '';
+        if (selBimestre.value !== dados.bimestre && dados.bimestre) {
+            selBimestre.innerHTML += `<option value="${dados.bimestre}" selected>${dados.bimestre}</option>`;
+            selBimestre.value = dados.bimestre;
+        }
+
+        if (dados.logoEscola) document.getElementById('pdfLogoEscola').src = dados.logoEscola;
+        if (dados.fotoProf) document.getElementById('outFoto').src = dados.fotoProf;
+
+        // CORREÇÃO: garante que conteudo é array antes de iterar
+        const conteudo = Array.isArray(dados.conteudo) ? dados.conteudo : [];
+        conteudo.forEach(dia => {
             const idDia = adicionarDia();
+            if (!idDia) return;
             const bloco = document.getElementById(`bloco-${idDia}`);
-            bloco.querySelector('.data-input').value = dia.data;
-            dia.materias.forEach(mat => {
+            if (!bloco) return;
+            bloco.querySelector('.data-input').value = dia.data || '';
+            const materias = Array.isArray(dia.materias) ? dia.materias : [];
+            materias.forEach(mat => {
                 const mId = addMateria(idDia);
                 const div = document.getElementById(mId);
-                div.querySelector('.m-sel').value = mat.nome;
-                div.querySelector('.m-txt').value = mat.conteudo;
-                div.querySelector('.m-img-base64').value = mat.imagem || "";
+                if (!div) return;
+                div.querySelector('.m-sel').value = mat.nome || '';
+                div.querySelector('.m-txt').value = mat.conteudo || '';
+                if (mat.imagem) div.querySelector('.m-img-base64').value = mat.imagem;
             });
+        });
+
+        atualizarPrevia();
+        lucide.createIcons();
+        
+        // No mobile, vai para a aba de preview
+        if (window.innerWidth <= 768) {
+            const prevBtn = document.querySelector('.mobile-tabs button:nth-child(2)');
+            if (prevBtn) trocarAba('previa', prevBtn);
+        }
+    };
+
+    // ========================
+    // ADICIONAR DIA
+    // ========================
+    window.adicionarDia = () => {
+        if (diasAtivos >= 5) { 
+            showToast("Máximo de 5 dias por horário!", "error"); 
+            return null; 
+        }
+        const id = Date.now();
+        const div = document.createElement('div');
+        div.className = 'dia-bloco'; 
+        div.id = `bloco-${id}`;
+        div.innerHTML = `
+            <div class="dia-header">
+                <span class="dia-titulo">Dia ${diasAtivos + 1}</span>
+                <button class="btn-remover-dia" onclick="removerDia(this)" title="Remover dia">×</button>
+            </div>
+            <label>Data</label>
+            <input type="date" class="data-input" onchange="atualizarPrevia()">
+            <div id="m-cont-${id}"></div>
+            <button class="btn-add-mat" onclick="addMateria('${id}')">+ Adicionar Matéria</button>`;
+        document.getElementById('lista-dias-editor').appendChild(div);
+        diasAtivos++;
+        atualizarPrevia();
+        return id;
+    };
+
+    // CORREÇÃO: função dedicada para remover dia e reordenar títulos
+    window.removerDia = (btn) => {
+        btn.closest('.dia-bloco').remove();
+        diasAtivos = Math.max(0, diasAtivos - 1);
+        // Reordenar títulos dos dias
+        document.querySelectorAll('.dia-bloco .dia-titulo').forEach((titulo, i) => {
+            titulo.textContent = `Dia ${i + 1}`;
         });
         atualizarPrevia();
     };
 
-    window.adicionarDia = () => {
-        if(diasAtivos >= 5) return null;
-        const id = Date.now();
-        const div = document.createElement('div');
-        div.className = 'dia-bloco'; div.id = `bloco-${id}`;
-        div.innerHTML = `<button onclick="this.parentElement.remove();diasAtivos--;atualizarPrevia();" style="position:absolute;right:5px;top:5px;border:none;color:red;cursor:pointer">X</button><label>Data:</label><input type="date" class="data-input" onchange="atualizarPrevia()"><div id="m-cont-${id}"></div><button onclick="addMateria('${id}')" style="cursor:pointer;font-size:10px;width:100%">+ Matéria</button>`;
-        document.getElementById('lista-dias-editor').appendChild(div);
-        diasAtivos++; return id;
-    };
-
+    // ========================
+    // ADICIONAR MATÉRIA
+    // ========================
     window.addMateria = (diaId) => {
         const mId = "mat-" + Math.random().toString(36).substr(2, 9);
-        const div = document.createElement('div'); div.id = mId; div.className="materia-item";
-        div.innerHTML = `<select class="m-sel" onchange="atualizarPrevia()"><option value="">Matéria</option>${disciplinasList.map(d=>`<option>${d}</option>`).join('')}</select><textarea class="m-txt" placeholder="Conteúdo" oninput="atualizarPrevia()"></textarea><input type="file" onchange="uploadFotoMat(this.id, '${mId}-base')" id="${mId}-file"><input type="hidden" class="m-img-base64" id="${mId}-base">`;
-        document.getElementById(`m-cont-${diaId}`).appendChild(div); return mId;
+        const div = document.createElement('div');
+        div.id = mId; 
+        div.className = "materia-item";
+        div.innerHTML = `
+            <select class="m-sel" onchange="atualizarPrevia()">
+                <option value="">Selecione a matéria</option>
+                ${disciplinasList.map(d => `<option value="${d}">${d}</option>`).join('')}
+            </select>
+            <textarea class="m-txt" placeholder="Conteúdo da avaliação..." oninput="atualizarPrevia()" rows="3"></textarea>
+            <input type="file" accept="image/*" onchange="uploadFotoMat(this.id, '${mId}-base')" id="${mId}-file" style="margin-bottom:0;">
+            <input type="hidden" class="m-img-base64" id="${mId}-base">`;
+        document.getElementById(`m-cont-${diaId}`).appendChild(div);
+        return mId;
     };
 
+    // ========================
+    // ATUALIZAR PRÉVIA
+    // ========================
     window.atualizarPrevia = () => {
-        document.getElementById('outEscola').innerText = document.getElementById('inEscola').value.toUpperCase();
-        document.getElementById('outSerie').innerText = document.getElementById('inSerie').value || "---";
-        document.getElementById('outBimestre').innerText = document.getElementById('inBimestre').value || "---";
-        document.getElementById('outProf').innerText = document.getElementById('inNomeProf').value;
-        const grid = document.getElementById('outGrid'); grid.innerHTML = '';
+        document.getElementById('outEscola').innerText = 
+            (document.getElementById('inEscola').value || 'Escola').toUpperCase();
+        document.getElementById('outSerie').innerText = 
+            document.getElementById('inSerie').value || '---';
+        document.getElementById('outBimestre').innerText = 
+            document.getElementById('inBimestre').value || '---';
+        document.getElementById('outProf').innerText = 
+            document.getElementById('inNomeProf').value || '---';
+
+        const grid = document.getElementById('outGrid'); 
+        grid.innerHTML = '';
+
         document.querySelectorAll('.dia-bloco').forEach(bl => {
             const dt = bl.querySelector('.data-input').value;
-            let diaT = "DIA"; let dtB = "---";
-            if(dt) { const d = new Date(dt + 'T00:00:00'); diaT = d.toLocaleDateString('pt-BR', {weekday:'long'}).split('-')[0]; dtB = d.toLocaleDateString('pt-BR'); }
-            let html = `<div class="col-pdf"><div class="topo-dia">${diaT.toUpperCase()}<br>${dtB}</div>`;
+            let diaT = "DIA", dtB = "---";
+            if (dt) {
+                const d = new Date(dt + 'T00:00:00');
+                diaT = d.toLocaleDateString('pt-BR', { weekday: 'long' }).split('-')[0].trim();
+                dtB = d.toLocaleDateString('pt-BR');
+            }
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col-pdf';
+            let html = `<div class="topo-dia">${diaT.toUpperCase()}<br>${dtB}</div>`;
             bl.querySelectorAll('.materia-item').forEach(m => {
                 const n = m.querySelector('.m-sel').value;
-                if(n) {
+                if (n) {
                     const img = m.querySelector('.m-img-base64').value;
-                    html += `<div class="materia-box"><div class="materia-tit">${n}</div><div class="materia-cont">${m.querySelector('.m-txt').value.replace(/\n/g,'<br>')}</div>${img ? `<img src="${img}" class="materia-img">` : ''}</div>`;
+                    html += `<div class="materia-box">
+                        <div class="materia-tit">${n}</div>
+                        <div class="materia-cont">${m.querySelector('.m-txt').value.replace(/\n/g, '<br>')}</div>
+                        ${img ? `<img src="${img}" class="materia-img" alt="">` : ''}
+                    </div>`;
                 }
             });
-            grid.innerHTML += html + '</div>';
+            colDiv.innerHTML = html;
+            grid.appendChild(colDiv);
         });
     };
 
+    // ========================
+    // SALVAR NO BANCO
+    // ========================
     window.salvarNoBanco = async () => {
         const conteudo = [];
         document.querySelectorAll('.dia-bloco').forEach(bl => {
             const mats = [];
             bl.querySelectorAll('.materia-item').forEach(mi => {
-                mats.push({nome: mi.querySelector('.m-sel').value, conteudo: mi.querySelector('.m-txt').value, imagem: mi.querySelector('.m-img-base64').value});
+                mats.push({ 
+                    nome: mi.querySelector('.m-sel').value, 
+                    conteudo: mi.querySelector('.m-txt').value, 
+                    imagem: mi.querySelector('.m-img-base64').value 
+                });
             });
-            conteudo.push({data: bl.querySelector('.data-input').value, materias: mats});
+            // CORREÇÃO: inclui índice de ordem para recuperação consistente
+            conteudo.push({ 
+                data: bl.querySelector('.data-input').value, 
+                materias: mats 
+            });
         });
-        await addDoc(collection(db, "horarios_salvos"), {
-            professor: auth.currentUser.email, professorNomeManual: document.getElementById('inNomeProf').value,
-            escola: document.getElementById('inEscola').value, serie: document.getElementById('inSerie').value, bimestre: document.getElementById('inBimestre').value,
-            logoEscola: document.getElementById('pdfLogoEscola').src, fotoProf: document.getElementById('outFoto').src,
-            conteudo: conteudo, criadoEm: serverTimestamp()
-        });
-        alert("Salvo!");
+
+        try {
+            await addDoc(collection(db, "horarios_salvos"), {
+                professor: auth.currentUser.email,
+                professorNomeManual: document.getElementById('inNomeProf').value,
+                escola: document.getElementById('inEscola').value,
+                serie: document.getElementById('inSerie').value,
+                bimestre: document.getElementById('inBimestre').value,
+                logoEscola: document.getElementById('pdfLogoEscola').src || '',
+                fotoProf: document.getElementById('outFoto').src || '',
+                conteudo,
+                criadoEm: serverTimestamp()  // CORREÇÃO: garante ordem cronológica no Firebase
+            });
+            showToast("Horário salvo com sucesso!", "success");
+        } catch(e) {
+            console.error(e);
+            showToast("Erro ao salvar. Tente novamente.", "error");
+        }
     };
 
-    window.baixarPDF = () => {
+    // ========================
+    // GERAR PDF — 21cm x 14.5cm
+    // Permite 2 documentos por folha A4 sem distorções
+    // ========================
+    window.baixarPDF = async () => {
         const isD = document.getElementById('checkDuplo').checked;
-        const f = document.getElementById('folha-pdf');
-        let el = f;
-        if (isD) {
-            const w = document.getElementById('wrapper-duplo'); w.innerHTML = ''; w.style.display = 'flex';
-            const c1 = f.cloneNode(true); const c2 = f.cloneNode(true); const d = document.createElement('div'); d.className = 'linha-corte';
-            [c1, c2].forEach(c => { c.style.transform = "scale(1)"; c.style.boxShadow = "none"; c.style.margin = "0 auto"; });
-            w.append(c1, d, c2); el = w;
-        } else { f.style.transform = "scale(1)"; f.style.boxShadow = "none"; }
-        const opt = { margin: 0, filename: 'Horario.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-        setTimeout(() => {
-            html2pdf().set(opt).from(el).save().then(() => {
-                f.style.transform = window.innerWidth <= 900 ? "scale(0.45)" : "scale(0.6)";
-                f.style.boxShadow = "0 10px 30px rgba(0,0,0,0.5)"; document.getElementById('wrapper-duplo').style.display = 'none';
-            });
-        }, 500);
+        const folhaOriginal = document.getElementById('folha-pdf');
+        const zone = document.getElementById('pdf-render-zone');
+        zone.innerHTML = '';
+
+        showToast("Gerando PDF...", "success");
+
+        try {
+            if (isD) {
+                // MODO DUPLO: 2 documentos de 21x14.5cm em uma folha A4 (21x29.7cm)
+                // Cada documento ocupa exatamente metade da altura com margem
+                const pagina = document.createElement('div');
+                pagina.style.cssText = `
+                    width: 210mm;
+                    height: 297mm;
+                    background: white;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: space-evenly;
+                    padding: 6mm 10mm;
+                    gap: 0;
+                    box-sizing: border-box;
+                `;
+
+                const makeClone = () => {
+                    const c = folhaOriginal.cloneNode(true);
+                    c.removeAttribute('id');
+                    c.style.cssText = `
+                        width: 190mm !important;
+                        height: 133mm !important;
+                        box-shadow: none !important;
+                        margin: 0;
+                        flex-shrink: 0;
+                    `;
+                    return c;
+                };
+
+                const linha = document.createElement('div');
+                linha.style.cssText = `
+                    width: 190mm;
+                    border-top: 1.5px dashed #999;
+                    position: relative;
+                    flex-shrink: 0;
+                    margin: 2mm 0;
+                `;
+                linha.innerHTML = `<span style="position:absolute;right:0;top:-9px;font-size:9px;color:#999;background:white;padding:0 4px;">✂ CORTE AQUI</span>`;
+
+                pagina.appendChild(makeClone());
+                pagina.appendChild(linha);
+                pagina.appendChild(makeClone());
+                zone.appendChild(pagina);
+
+                await new Promise(r => setTimeout(r, 500));
+
+                const opt = {
+                    margin: 0,
+                    filename: `Horario_${document.getElementById('inSerie').value || 'Escola'}_Duplo.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 3, useCORS: true, logging: false, allowTaint: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                await html2pdf().set(opt).from(pagina).save();
+
+            } else {
+                // MODO SIMPLES: 1 documento de 21cm x 14.5cm
+                const pagina = document.createElement('div');
+                pagina.style.cssText = `
+                    width: 210mm;
+                    height: 145mm;
+                    background: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-sizing: border-box;
+                `;
+
+                const c = folhaOriginal.cloneNode(true);
+                c.removeAttribute('id');
+                c.style.cssText = `
+                    width: 190mm !important;
+                    height: 133mm !important;
+                    box-shadow: none !important;
+                    margin: 0;
+                `;
+                pagina.appendChild(c);
+                zone.appendChild(pagina);
+
+                await new Promise(r => setTimeout(r, 500));
+
+                const opt = {
+                    margin: 0,
+                    filename: `Horario_${document.getElementById('inSerie').value || 'Escola'}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 3, useCORS: true, logging: false, allowTaint: true },
+                    jsPDF: { unit: 'mm', format: [210, 145], orientation: 'landscape' }
+                };
+
+                await html2pdf().set(opt).from(pagina).save();
+            }
+
+        } catch(e) {
+            console.error("Erro ao gerar PDF:", e);
+            showToast("Erro ao gerar PDF.", "error");
+        } finally {
+            zone.innerHTML = '';
+        }
     };
 
-    auth.onAuthStateChanged(u => u ? init() : window.location.href="index.html");
+    // ========================
+    // AUTH STATE
+    // ========================
+    auth.onAuthStateChanged(u => {
+        if (u) {
+            init();
+        } else {
+            window.location.href = "index.html";
+        }
+    });
 </script>
 </body>
 </html>
