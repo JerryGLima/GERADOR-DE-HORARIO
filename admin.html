@@ -3,113 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Admin - Hoário de Avaliações</title>
+    <title>Painel Admin - Horário de Avaliações</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --primary: #4f46e5;
             --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
             --bg-body: #f1f5f9;
             --surface: #ffffff;
             --border: #e2e8f0;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --danger: #ef4444;
-            --danger-hover: #dc2626;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-body); margin: 0; padding-bottom: 50px; color: var(--text-main); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
         
-        /* Cabeçalho Moderno */
+        /* HEADER */
         .header { 
             background: var(--surface); 
-            padding: 20px 40px; 
+            padding: 14px 20px; 
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border);
             position: sticky; top: 0; z-index: 100;
+            gap: 12px;
         }
         
-        .header-brand { display: flex; align-items: center; gap: 12px; }
-        .header-brand h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--text-main); }
-        .header-icon { color: var(--primary); }
+        .header-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .header-brand h1 { 
+            font-size: 17px; 
+            font-weight: 600; 
+            color: var(--text-main); 
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .header-icon { color: var(--primary); flex-shrink: 0; }
 
         .btn-sair { 
             background: white; 
             color: var(--text-muted); 
             border: 1px solid var(--border); 
-            padding: 8px 16px; 
+            padding: 8px 14px; 
             border-radius: 8px; 
             cursor: pointer; 
             font-weight: 500;
+            font-size: 13px;
             transition: all 0.2s;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-family: inherit;
+            min-height: 40px;
         }
         .btn-sair:hover { background: #f8fafc; color: var(--text-main); }
 
-        /* Navegação */
+        /* NAVEGAÇÃO */
         .nav-tabs { 
             display: flex; 
-            justify-content: center; 
-            gap: 10px;
-            padding: 20px;
             background: var(--surface);
             border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
+        .nav-tabs::-webkit-scrollbar { display: none; }
         
         .tab-btn { 
-            padding: 10px 20px; 
+            padding: 14px 18px; 
             cursor: pointer; 
             border: none; 
             background: transparent; 
             font-weight: 500; 
             color: var(--text-muted); 
-            border-radius: 8px;
+            border-bottom: 3px solid transparent;
             transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
+            font-family: inherit;
+            font-size: 14px;
         }
-        
-        .tab-btn:hover { background: var(--bg-body); color: var(--text-main); }
-        .tab-btn.active { background: #e0e7ff; color: var(--primary); }
+        .tab-btn:hover { color: var(--text-main); background: #f8fafc; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--primary-light); }
 
-        /* Conteúdo Principal */
-        .content { max-width: 1000px; margin: 30px auto; padding: 0 20px; }
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        /* CONTEÚDO */
+        .content { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+        .tab-content { display: none; animation: fadeIn 0.25s ease; }
         .tab-content.active { display: block; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
         .card { 
             background: var(--surface); 
-            padding: 30px; 
+            padding: 24px; 
             border-radius: 12px; 
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
             border: 1px solid var(--border);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        h2 { color: var(--text-main); margin-top: 0; font-size: 18px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-        h3 { font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 15px; }
+        h2 { 
+            color: var(--text-main); 
+            font-size: 16px; 
+            font-weight: 600; 
+            margin-bottom: 20px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+        }
+        h3 { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Formulários */
-        .form-row { display: flex; gap: 15px; margin-bottom: 20px; align-items: flex-start; flex-wrap: wrap; }
+        /* FORMULÁRIOS */
+        .form-row { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            align-items: stretch;
+            flex-wrap: wrap; 
+        }
         
-        input[type="text"], input[type="email"], input[type="file"] { 
-            padding: 10px 14px; 
+        input[type="text"], input[type="email"] { 
+            padding: 11px 14px; 
             flex: 1;
-            min-width: 200px;
-            border: 1px solid var(--border); 
+            min-width: 180px;
+            border: 1.5px solid var(--border); 
             border-radius: 8px; 
             font-family: inherit;
             font-size: 14px;
             transition: all 0.2s;
             outline: none;
+            color: var(--text-main);
+            min-height: 44px;
+        }
+        input[type="file"] {
+            padding: 11px 14px; 
+            flex: 1;
+            min-width: 180px;
+            border: 1.5px dashed var(--border); 
+            border-radius: 8px; 
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            min-height: 44px;
         }
         
         input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
@@ -118,23 +171,36 @@
             background: var(--primary); 
             color: white; 
             border: none; 
-            padding: 10px 20px; 
+            padding: 11px 20px; 
             border-radius: 8px; 
             cursor: pointer; 
-            font-weight: 500; 
+            font-weight: 600; 
             font-size: 14px;
             transition: background 0.2s;
             white-space: nowrap;
+            font-family: inherit;
+            min-height: 44px;
         }
         button.add-btn:hover { background: var(--primary-hover); }
+        button.add-btn:active { transform: scale(0.97); }
 
-        /* Tabelas */
-        .table-container { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+        /* TABELAS */
+        .table-container { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
         .data-table { width: 100%; border-collapse: collapse; background: white; font-size: 14px; }
-        .data-table th { background: #f8fafc; color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 12px; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
-        .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        .data-table th { 
+            background: #f8fafc; 
+            color: var(--text-muted); 
+            font-weight: 600; 
+            text-transform: uppercase; 
+            font-size: 11px; 
+            padding: 10px 14px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 0.5px;
+        }
+        .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text-main); }
         .data-table tr:last-child td { border-bottom: none; }
-        .data-table tr:hover { background: #f8fafc; }
+        .data-table tr:hover td { background: #f8fafc; }
 
         .btn-del { 
             background: white; 
@@ -146,34 +212,63 @@
             font-size: 12px;
             font-weight: 500;
             transition: all 0.2s;
+            font-family: inherit;
+            min-height: 34px;
         }
         .btn-del:hover { background: var(--danger); color: white; border-color: var(--danger); }
 
-        /* Box Especiais */
-        .highlight-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; }
+        /* Grid de 2 colunas para config */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .highlight-box { 
+            background: #fafbff; 
+            border: 1.5px dashed #c7d2fe; 
+            padding: 20px; 
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .config-grid { grid-template-columns: 1fr; }
+            .form-row { flex-direction: column; }
+            input[type="text"], input[type="email"], input[type="file"] { min-width: unset; width: 100%; }
+            .card { padding: 16px; }
+            .header-brand h1 { font-size: 15px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="header">
     <div class="header-brand">
-        <i data-lucide="layout-dashboard" class="header-icon"></i>
+        <i data-lucide="layout-dashboard" class="header-icon" style="width:20px;height:20px;"></i>
         <h1>Painel Administrativo</h1>
     </div>
     <button class="btn-sair" onclick="logout()">
-        <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Sair
+        <i data-lucide="log-out" style="width: 15px; height: 15px;"></i> Sair
     </button>
 </div>
 
 <div class="nav-tabs">
     <button class="tab-btn active" onclick="openTab(event, 'professores')">
-        <i data-lucide="users" style="width: 18px; height: 18px;"></i> Professores
+        <i data-lucide="users" style="width: 16px; height: 16px;"></i> Professores
     </button>
     <button class="tab-btn" onclick="openTab(event, 'disciplinas')">
-        <i data-lucide="book-open" style="width: 18px; height: 18px;"></i> Disciplinas
+        <i data-lucide="book-open" style="width: 16px; height: 16px;"></i> Disciplinas
     </button>
     <button class="tab-btn" onclick="openTab(event, 'config')">
-        <i data-lucide="settings-2" style="width: 18px; height: 18px;"></i> Configurações
+        <i data-lucide="settings-2" style="width: 16px; height: 16px;"></i> Configurações
     </button>
 </div>
 
@@ -181,16 +276,20 @@
     <!-- TAB PROFESSORES -->
     <div id="professores" class="tab-content active">
         <div class="card">
-            <h2><i data-lucide="user-plus"></i> Adicionar Professor</h2>
+            <h2><i data-lucide="user-plus" style="width:18px;height:18px;"></i> Adicionar Professor</h2>
             <div class="form-row">
                 <input type="text" id="pNome" placeholder="Nome Completo">
                 <input type="email" id="pEmail" placeholder="Email Google (ex: prof@gmail.com)">
-                <button class="add-btn" onclick="execCadastrar('professores', {nome: document.getElementById('pNome').value, email: document.getElementById('pEmail').value.toLowerCase().trim()}, ['pNome', 'pEmail'])">Cadastrar Acesso</button>
+                <button class="add-btn" onclick="execCadastrar('professores', {nome: document.getElementById('pNome').value.trim(), email: document.getElementById('pEmail').value.toLowerCase().trim()}, ['pNome', 'pEmail'])">
+                    Cadastrar
+                </button>
             </div>
             
-            <h3 style="margin-top: 30px;">Lista de Acessos Permitidos</h3>
+            <h3 style="margin-top: 8px;">Acessos Permitidos</h3>
             <div class="table-container">
-                <table class="data-table" id="tabela-professores"></table>
+                <table class="data-table" id="tabela-professores">
+                    <tr><th>Nome</th><th>Email</th><th style="width:80px;text-align:center;">Ação</th></tr>
+                </table>
             </div>
         </div>
     </div>
@@ -198,15 +297,17 @@
     <!-- TAB DISCIPLINAS -->
     <div id="disciplinas" class="tab-content">
         <div class="card">
-            <h2><i data-lucide="library"></i> Gerenciar Disciplinas</h2>
+            <h2><i data-lucide="library" style="width:18px;height:18px;"></i> Gerenciar Disciplinas</h2>
             <div class="form-row">
                 <input type="text" id="dNome" placeholder="Ex: Matemática, História...">
-                <button class="add-btn" onclick="execCadastrar('disciplinas', {nome: document.getElementById('dNome').value}, ['dNome'])">Adicionar Disciplina</button>
+                <button class="add-btn" onclick="execCadastrar('disciplinas', {nome: document.getElementById('dNome').value.trim()}, ['dNome'])">Adicionar</button>
             </div>
             
-            <h3 style="margin-top: 30px;">Disciplinas Ativas</h3>
+            <h3 style="margin-top: 8px;">Disciplinas Ativas</h3>
             <div class="table-container">
-                <table class="data-table" id="tabela-disciplinas"></table>
+                <table class="data-table" id="tabela-disciplinas">
+                    <tr><th>Disciplina</th><th style="width:80px;text-align:center;">Ação</th></tr>
+                </table>
             </div>
         </div>
     </div>
@@ -214,42 +315,45 @@
     <!-- TAB CONFIGURAÇÕES -->
     <div id="config" class="tab-content">
         
-        <!-- LOGO DA ESCOLA -->
         <div class="card highlight-box">
-            <h2><i data-lucide="image"></i> Identidade Visual</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Logo oficial que aparecerá nos cabeçalhos dos PDFs gerados.</p>
-            <div class="form-row" style="align-items: center;">
+            <h2><i data-lucide="image" style="width:18px;height:18px;"></i> Identidade Visual</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Logo que aparecerá nos cabeçalhos dos PDFs gerados.</p>
+            <div class="form-row">
                 <input type="file" id="fEscola" accept="image/*">
                 <button class="add-btn" onclick="salvarLogoEscola()">Salvar Imagem</button>
             </div>
-            <div id="stLogo" style="font-size: 13px; font-weight: 500; color: #10b981; margin-top: 5px;"></div>
+            <div id="stLogo" style="font-size: 13px; font-weight: 500; color: #10b981; margin-top: 4px;"></div>
         </div>
 
         <div class="card">
-            <h2><i data-lucide="graduation-cap"></i> Estrutura Escolar</h2>
+            <h2><i data-lucide="graduation-cap" style="width:18px;height:18px;"></i> Estrutura Escolar</h2>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div class="config-grid">
                 <!-- Séries -->
                 <div>
                     <h3>Turmas / Séries</h3>
-                    <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="form-row" style="margin-bottom: 12px;">
                         <input type="text" id="sNome" placeholder="Ex: 1º Ano A">
-                        <button class="add-btn" onclick="execCadastrar('series', {nome: document.getElementById('sNome').value}, ['sNome'])">Add</button>
+                        <button class="add-btn" onclick="execCadastrar('series', {nome: document.getElementById('sNome').value.trim()}, ['sNome'])">Add</button>
                     </div>
                     <div class="table-container">
-                        <table class="data-table" id="tabela-series"></table>
+                        <table class="data-table" id="tabela-series">
+                            <tr><th>Série</th><th style="width:70px;text-align:center;">Ação</th></tr>
+                        </table>
                     </div>
                 </div>
 
                 <!-- Bimestres -->
                 <div>
                     <h3>Períodos / Bimestres</h3>
-                    <div class="form-row" style="margin-bottom: 15px;">
+                    <div class="form-row" style="margin-bottom: 12px;">
                         <input type="text" id="bNome" placeholder="Ex: 1º Bimestre">
-                        <button class="add-btn" onclick="execCadastrar('bimestres', {nome: document.getElementById('bNome').value}, ['bNome'])">Add</button>
+                        <button class="add-btn" onclick="execCadastrar('bimestres', {nome: document.getElementById('bNome').value.trim()}, ['bNome'])">Add</button>
                     </div>
                     <div class="table-container">
-                        <table class="data-table" id="tabela-bimestres"></table>
+                        <table class="data-table" id="tabela-bimestres">
+                            <tr><th>Período</th><th style="width:70px;text-align:center;">Ação</th></tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -266,7 +370,6 @@
     import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Dados reais do seu projeto Firebase unificados diretamente no arquivo
     const firebaseConfig = {
         apiKey: "AIzaSyB_pjYoRVsHvKoIKZ4iPnHhxGDO6vabC0E",
         authDomain: "gerador-de-horarios-bfa7e.firebaseapp.com",
@@ -276,7 +379,6 @@
         appId: "1:1080512413421:web:a9cb2ab697c67e75b0d6e4"
     };
 
-    // Inicializa o Firebase
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
@@ -290,51 +392,93 @@
         evt.currentTarget.classList.add('active');
     };
 
-    // --- SALVAR LOGO ESCOLA (BASE64 - CUSTO ZERO) ---
+    // --- SALVAR LOGO ESCOLA ---
     window.salvarLogoEscola = async () => {
         const file = document.getElementById('fEscola').files[0];
-        if(!file) return alert("Selecione uma imagem!");
+        if (!file) return alert("Selecione uma imagem primeiro!");
         
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
             try {
                 await setDoc(doc(db, "configuracoes", "escola"), { logo: reader.result });
-                document.getElementById('stLogo').innerHTML = '<i data-lucide="check-circle" style="width:14px;height:14px;vertical-align:middle;"></i> Logo atualizado com sucesso!';
-                lucide.createIcons();
-            } catch (e) { alert("Erro ao salvar logo"); }
+                const stEl = document.getElementById('stLogo');
+                stEl.textContent = '✓ Logo atualizado com sucesso!';
+                setTimeout(() => stEl.textContent = '', 3000);
+            } catch (e) { alert("Erro ao salvar logo: " + e.message); }
         };
     };
 
     window.execCadastrar = async (colecao, dados, inputs) => {
-        if(Object.values(dados).some(v => v === "")) return alert("Preencha todos os campos!");
-        await addDoc(collection(db, colecao), dados);
-        inputs.forEach(id => document.getElementById(id).value = "");
+        const vals = Object.values(dados);
+        if (vals.some(v => !v || v === "")) return alert("Preencha todos os campos!");
+        try {
+            await addDoc(collection(db, colecao), dados);
+            inputs.forEach(id => { const el = document.getElementById(id); if(el) el.value = ""; });
+        } catch(e) { alert("Erro ao cadastrar: " + e.message); }
     };
 
     window.execExcluir = async (colecao, id) => {
-        if(confirm("Tem certeza que deseja excluir permanentemente?")) await deleteDoc(doc(db, colecao, id));
+        if (confirm("Tem certeza que deseja excluir permanentemente?")) {
+            try {
+                await deleteDoc(doc(db, colecao, id));
+            } catch(e) { alert("Erro ao excluir: " + e.message); }
+        }
     };
 
-    function listar(colecao, tabelaId, campo) {
-        onSnapshot(query(collection(db, colecao), orderBy(campo, "asc")), (snap) => {
+    // CORREÇÃO: uso consistente de orderBy para manter ordem estável
+    function listar(colecao, tabelaId, campo, colunas) {
+        const q = query(collection(db, colecao), orderBy(campo, "asc"));
+        onSnapshot(q, (snap) => {
             const table = document.getElementById(tabelaId);
-            table.innerHTML = `<tr><th>Registro</th><th style="width: 80px; text-align: center;">Ação</th></tr>`;
+            if (!table) return;
+
+            if (snap.empty) {
+                // Mantém header e mostra estado vazio
+                const headerRow = table.querySelector('tr');
+                table.innerHTML = '';
+                if (headerRow) table.appendChild(headerRow);
+                const emptyTr = document.createElement('tr');
+                emptyTr.innerHTML = `<td colspan="${colunas + 1}" style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Nenhum registro encontrado.</td>`;
+                table.appendChild(emptyTr);
+                return;
+            }
+
+            // Preserva o header original
+            const headerRow = table.querySelector('tr');
+            table.innerHTML = '';
+            if (headerRow) table.appendChild(headerRow);
+
             snap.forEach(d => {
-                table.innerHTML += `<tr>
-                    <td><strong>${d.data().nome || d.data().email}</strong></td>
-                    <td style="text-align: center;">
-                        <button class="btn-del" onclick="execExcluir('${colecao}', '${d.id}')">Excluir</button>
-                    </td>
-                </tr>`;
+                const data = d.data();
+                const tr = document.createElement('tr');
+                
+                if (colecao === 'professores') {
+                    tr.innerHTML = `
+                        <td><strong>${data.nome || '—'}</strong></td>
+                        <td style="color:var(--text-muted);font-size:13px;">${data.email || '—'}</td>
+                        <td style="text-align:center;">
+                            <button class="btn-del" onclick="execExcluir('${colecao}', '${d.id}')">Excluir</button>
+                        </td>`;
+                } else {
+                    tr.innerHTML = `
+                        <td><strong>${data.nome || '—'}</strong></td>
+                        <td style="text-align:center;">
+                            <button class="btn-del" onclick="execExcluir('${colecao}', '${d.id}')">Excluir</button>
+                        </td>`;
+                }
+                table.appendChild(tr);
             });
+        }, (error) => {
+            console.error("Erro ao carregar " + colecao + ":", error);
         });
     }
 
-    listar('professores', 'tabela-professores', 'nome');
-    listar('disciplinas', 'tabela-disciplinas', 'nome');
-    listar('series', 'tabela-series', 'nome');
-    listar('bimestres', 'tabela-bimestres', 'nome');
+    // CORREÇÃO: passa número de colunas para cada tabela
+    listar('professores', 'tabela-professores', 'nome', 2);
+    listar('disciplinas', 'tabela-disciplinas', 'nome', 1);
+    listar('series', 'tabela-series', 'nome', 1);
+    listar('bimestres', 'tabela-bimestres', 'nome', 1);
 </script>
 </body>
 </html>
