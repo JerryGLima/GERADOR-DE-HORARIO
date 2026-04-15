@@ -398,10 +398,10 @@
             gap: 5mm;
             flex-shrink: 0;
         }
-        .logo-escola-pdf { width: 55px; height: 55px; object-fit: contain; flex-shrink: 0; }
+        .logo-escola-pdf { width: 110px; height: 110px; object-fit: contain; flex-shrink: 0; }
         .foto-prof-pdf {
-            width: 45px;
-            height: 58px;
+            width: 90px;
+            height: 116px;
             border: 1.5px solid var(--primary);
             object-fit: cover;
             border-radius: 3px;
@@ -438,13 +438,13 @@
             flex-shrink: 0;
         }
         .materia-box { 
-            padding: 2.5px 3.5px; 
+            padding: 4px 5px; 
             border-bottom: 1px dotted #bbb; 
         }
         .materia-box:last-child { border-bottom: none; }
-        .materia-tit { font-weight: 700; font-size: 9px; color: var(--primary); }
-        .materia-cont { font-size: 8.5px; line-height: 1.3; color: #222; }
-        .materia-img { width: 100%; max-height: 70px; object-fit: contain; margin: 2px 0; display: block; }
+        .materia-tit { font-weight: 700; font-size: 9px; color: var(--primary); margin-bottom: 3px; }
+        .materia-cont { font-size: 8.5px; line-height: 1.4; color: #222; margin-top: 2px; }
+        .materia-img { max-width: 80%; max-height: 80px; width: auto; height: auto; object-fit: contain; margin: 3px auto; display: block; }
         .rodape-pdf { 
             text-align: center; 
             font-size: 7.5px; 
@@ -829,45 +829,55 @@
 
     // ========================
     // CARREGAR HORÁRIO SALVO
-    // CORREÇÃO: restaura estado completo de forma consistente
+    // BUG CORRIGIDO: disciplinas misturando de dia
+    // Causa: Date.now() colide quando dias são criados em sequência
+    // rápida. Solução: contador estável + flag _carregando para
+    // suprimir re-renders parciais durante a montagem.
     // ========================
+    let _carregando = false;
+
     window.loadSch = (dados) => {
+        _carregando = true;  // bloqueia atualizarPrevia() durante montagem
+
         document.getElementById('lista-dias-editor').innerHTML = '';
         diasAtivos = 0;
 
         document.getElementById('inEscola').value = dados.escola || '';
         document.getElementById('inNomeProf').value = dados.professorNomeManual || dados.professor || '';
 
-        // Restaura selects com os valores salvos
         const selSerie = document.getElementById('inSerie');
         const selBimestre = document.getElementById('inBimestre');
         
-        // Tenta setar o valor; se não existir como option, adiciona temporariamente
         selSerie.value = dados.serie || '';
         if (selSerie.value !== dados.serie && dados.serie) {
-            selSerie.innerHTML += `<option value="${dados.serie}" selected>${dados.serie}</option>`;
+            selSerie.innerHTML += `<option value="${dados.serie}">${dados.serie}</option>`;
             selSerie.value = dados.serie;
         }
 
         selBimestre.value = dados.bimestre || '';
         if (selBimestre.value !== dados.bimestre && dados.bimestre) {
-            selBimestre.innerHTML += `<option value="${dados.bimestre}" selected>${dados.bimestre}</option>`;
+            selBimestre.innerHTML += `<option value="${dados.bimestre}">${dados.bimestre}</option>`;
             selBimestre.value = dados.bimestre;
         }
 
         if (dados.logoEscola) document.getElementById('pdfLogoEscola').src = dados.logoEscola;
         if (dados.fotoProf) document.getElementById('outFoto').src = dados.fotoProf;
 
-        // CORREÇÃO: garante que conteudo é array antes de iterar
         const conteudo = Array.isArray(dados.conteudo) ? dados.conteudo : [];
         conteudo.forEach(dia => {
+            // adicionarDia() agora usa ID de contador (dia_1, dia_2...)
+            // garantindo unicidade mesmo quando chamado em sequência rápida
             const idDia = adicionarDia();
             if (!idDia) return;
+
             const bloco = document.getElementById(`bloco-${idDia}`);
             if (!bloco) return;
+
             bloco.querySelector('.data-input').value = dia.data || '';
+
             const materias = Array.isArray(dia.materias) ? dia.materias : [];
             materias.forEach(mat => {
+                // addMateria recebe o idDia CORRETO deste dia — sem confusão de containers
                 const mId = addMateria(idDia);
                 const div = document.getElementById(mId);
                 if (!div) return;
@@ -877,10 +887,11 @@
             });
         });
 
+        // Libera o lock e renderiza o preview UMA ÚNICA VEZ com tudo pronto
+        _carregando = false;
         atualizarPrevia();
         lucide.createIcons();
         
-        // No mobile, vai para a aba de preview
         if (window.innerWidth <= 768) {
             const prevBtn = document.querySelector('.mobile-tabs button:nth-child(2)');
             if (prevBtn) trocarAba('previa', prevBtn);
@@ -889,13 +900,18 @@
 
     // ========================
     // ADICIONAR DIA
+    // CORREÇÃO: usa contador incremental em vez de Date.now()
+    // para evitar colisão de IDs quando vários dias são criados
+    // rapidamente (ex: ao carregar horário salvo)
     // ========================
+    let _diaCounter = 0;
     window.adicionarDia = () => {
         if (diasAtivos >= 5) { 
             showToast("Máximo de 5 dias por horário!", "error"); 
             return null; 
         }
-        const id = Date.now();
+        // ID único e estável baseado em contador, não em timestamp
+        const id = 'dia_' + (++_diaCounter);
         const div = document.createElement('div');
         div.className = 'dia-bloco'; 
         div.id = `bloco-${id}`;
@@ -949,6 +965,7 @@
     // ATUALIZAR PRÉVIA
     // ========================
     window.atualizarPrevia = () => {
+        if (_carregando) return;  // não renderiza enquanto loadSch está montando
         document.getElementById('outEscola').innerText = 
             (document.getElementById('inEscola').value || 'Escola').toUpperCase();
         document.getElementById('outSerie').innerText = 
