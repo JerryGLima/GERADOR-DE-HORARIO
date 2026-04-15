@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-    <title>Gerador de Horário Escolar</title>
+    <title>Editor - Colégio Elicéu</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -409,12 +409,14 @@
             flex-shrink: 0;
         }
         .header-texto { text-align: center; flex: 1; }
-        .header-texto h1 { font-size: 13px; line-height: 1.15; text-transform: uppercase; font-weight: 800; margin-bottom: 1.5px; }
-        .header-texto p { font-size: 9.5px; line-height: 1.35; font-weight: 500; }
+        .header-texto h1 { font-size: 16px; line-height: 1.2; text-transform: uppercase; font-weight: 800; margin-bottom: 3px; }
+        .header-texto p { font-size: 12px; line-height: 1.45; font-weight: 500; }
 
         .grid-pdf { 
-            display: grid; 
-            grid-template-columns: repeat(5, 1fr); 
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: stretch;
             gap: 2.5px; 
             flex: 1;
             overflow: hidden;
@@ -426,6 +428,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            flex: 1;
+            min-width: 0;
         }
         .topo-dia { 
             background: #e2b9be; 
@@ -548,7 +552,7 @@
 
 <div class="app-header">
     <div class="app-header-info">
-        <h1>✏️ Gerador de Horário de Avaliações</h1>
+        <h1>✏️ Editor de Horário</h1>
         <p id="header-nome-prof">Carregando...</p>
     </div>
     <button class="btn-sair" onclick="sair()">
@@ -638,7 +642,7 @@
                     <img src="" class="foto-prof-pdf" id="outFoto" alt="foto">
                 </div>
                 <div class="grid-pdf" id="outGrid"></div>
-                <div class="rodape-pdf">“Seu esforço de hoje é o seu resultado de amanhã.”</div>
+                <div class="rodape-pdf">Gerador de Horários — Colégio Elicéu Monteiro Alves</div>
             </div>
         </div>
     </div>
