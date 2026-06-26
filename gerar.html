@@ -413,19 +413,19 @@
             white-space: nowrap;
         }
         .header-escola-pdf h2 {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 13.5px;
+            font-weight: 700;
             text-transform: uppercase;
             color: #2b0a0e;
             line-height: 1.25;
         }
         .header-escola-pdf h1 {
-            font-size: 15.5px;
+            font-size: 19px;
             font-weight: 800;
             text-transform: uppercase;
             color: var(--primary);
             line-height: 1.2;
-            margin-top: 1px;
+            margin-top: 2px;
         }
         .header-faixas-pdf {
             flex: 1;
@@ -444,7 +444,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 2mm 6mm 2mm 7mm;
+            padding: 1.5mm 4mm 1.5mm 5mm;
             flex-shrink: 0;
             white-space: nowrap;
         }
@@ -463,8 +463,17 @@
             min-width: 0;
             overflow: hidden;
         }
-        .faixa-prof-pdf .l1 { font-size: 14px; font-weight: 800; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .faixa-prof-pdf .l2 { font-size: 9.5px; font-weight: 600; margin-top: 1px; }
+        .faixa-prof-pdf .l1 { 
+            font-size: 13px; 
+            font-weight: 800; 
+            line-height: 1.15; 
+            max-width: 100%; 
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .faixa-prof-pdf .l2 { font-size: 9.5px; font-weight: 600; margin-top: 2px; }
         .foto-prof-box {
             flex: 0 0 auto;
             width: 28mm;
@@ -498,11 +507,12 @@
             flex-direction: row;
             justify-content: center;
             align-items: stretch;
-            gap: 0;
+            gap: 2.2px;
             flex: 1;
             overflow: hidden;
             border: 2px solid var(--primary);
             border-radius: 8px;
+            background: var(--primary);
         }
         .col-pdf { 
             background: #fff; 
@@ -511,9 +521,7 @@
             flex-direction: column;
             flex: 1;
             min-width: 0;
-            border-right: 1.5px solid var(--primary);
         }
-        .col-pdf:last-child { border-right: none; }
         .topo-dia { 
             background: var(--primary); 
             color: #fff; 
