@@ -523,6 +523,7 @@
         .grade-vazia { margin: auto; padding: 12px; font-size: 13px; text-align: center; color: #806369; }
         .rodape-pdf {
             flex: none;
+            overflow-wrap: anywhere;
             text-align: center;
             margin: 0 8px 3px;
             padding: 5px 0 1px;
@@ -706,7 +707,9 @@
                 <option value="">Carregando...</option>
             </select>
             <label for="inAno">Ano letivo</label>
-            <input type="number" id="inAno" min="1900" max="9999" placeholder="Ano da primeira avaliação" oninput="atualizarPrevia()" style="margin-bottom:0">
+            <input type="number" id="inAno" min="1900" max="9999" placeholder="Ano da primeira avaliação" oninput="atualizarPrevia()">
+            <label for="inRodape">Frase do rodapé</label>
+            <input type="text" id="inRodape" value="Boa sorte e bons estudos!" placeholder="Deixe em branco para ocultar" oninput="atualizarPrevia()" style="margin-bottom:0">
         </div>
 
         <p class="section-title">Dias de Avaliação</p>
@@ -772,7 +775,7 @@
                     </div>
                     <div class="quadro-pdf">
                         <div class="grid-pdf" id="outGrid"></div>
-                        <p class="rodape-pdf">Boa sorte e bons estudos!</p>
+                        <p class="rodape-pdf" id="outRodape" hidden></p>
                     </div>
                 </div>
             </div>
@@ -826,6 +829,8 @@
     const viewport = document.getElementById('folha-viewport');
     const wrapper = document.getElementById('folha-wrapper');
     const grid = document.getElementById('outGrid');
+    const campoRodape = document.getElementById('inRodape');
+    const rodape = document.getElementById('outRodape');
     const aviso = document.getElementById('aviso-previa');
 
     new ResizeObserver(() => {
@@ -1013,6 +1018,7 @@
         document.getElementById('inEscola').value = dados.escola || '';
         document.getElementById('inNomeProf').value = dados.professorNomeManual || dados.professor || '';
         document.getElementById('inAno').value = dados.anoLetivo || '';
+        campoRodape.value = dados.fraseRodape ?? campoRodape.defaultValue;
         document.getElementById('f-prof').value = '';
 
         const selSerie = document.getElementById('inSerie');
@@ -1209,6 +1215,8 @@
         document.getElementById('outSerie').textContent = document.getElementById('inSerie').value || 'Turma';
         document.getElementById('outBimestre').textContent = periodo || 'Bimestre';
         document.getElementById('outProf').textContent = document.getElementById('inNomeProf').value.trim() || 'Docente';
+        rodape.textContent = campoRodape.value.trim();
+        rodape.hidden = !rodape.textContent;
 
         const foto = document.getElementById('outFoto').getAttribute('src');
         const fotoBox = document.getElementById('foto-prof-box');
@@ -1289,6 +1297,7 @@
                 serie: document.getElementById('inSerie').value,
                 bimestre: document.getElementById('inBimestre').value,
                 anoLetivo: document.getElementById('inAno').value,
+                fraseRodape: campoRodape.value.trim(),
                 logoEscola: document.getElementById('pdfLogoEscola').getAttribute('src') || '',
                 fotoProf: document.getElementById('outFoto').getAttribute('src') || '',
                 conteudo,
