@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Horário de Avaliações</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
             justify-content: space-between;
             align-items: center;
             position: sticky;
-            : 0;
+            top: 0;
             z-index: 200;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             gap: 10px;
@@ -71,7 +71,7 @@
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             position: sticky;
-            top: 53px;
+            top: 64px;
             z-index: 150;
         }
         .mobile-tabs button {
@@ -101,7 +101,7 @@
         /* ========================
            LAYOUT PRINCIPAL
         ======================== */
-        .layout { display: flex; height: calc(100vh - 53px); }
+        .layout { display: flex; height: calc(100dvh - 64px); }
 
         /* ========================
            PAINEL EDITOR (ESQUERDA)
@@ -189,7 +189,7 @@
             letter-spacing: 0.5px;
             color: var(--text-muted);
         }
-        input[type="text"], input[type="date"], select, textarea {
+        input[type="text"], input[type="number"], input[type="date"], select, textarea {
             width: 100%;
             padding: 11px 13px;
             border: 1.5px solid var(--border);
@@ -315,7 +315,8 @@
             align-items: center;
             overflow-y: auto;
             padding: 20px;
-            background: #374151;
+            min-width: 0;
+            background: #eee6e5;
             -webkit-overflow-scrolling: touch;
         }
         .barra-ferramentas {
@@ -357,190 +358,227 @@
             font-family: inherit;
             min-height: 40px;
         }
-        .btn-save { background: #3b82f6; color: white; }
-        .btn-save:hover { background: #2563eb; }
+        .btn-save { background: var(--primary-light); color: var(--primary); }
+        .btn-save:hover { background: #f1d6da; }
+        .btn-tool:disabled { opacity: 0.65; cursor: wait; }
         .btn-pdf { background: var(--primary); color: white; }
         .btn-pdf:hover { background: var(--primary-hover); }
         .btn-tool:active { transform: scale(0.97); }
 
-        /* ========================
-           FOLHA PDF — 21cm x 14.5cm
-           (tamanho exato para 2 por folha A4)
-        ======================== */
-        .folha-wrapper { 
-            transform: scale(0.55); 
-            transform-origin: top center; 
-            /* Compensar espaço extra causado pelo scale */
-            margin-bottom: calc((var(--pdf-h) * 0.55) - var(--pdf-h));
+        /* A prévia é redimensionada sem alterar a composição usada no PDF. */
+        .folha-viewport { width: 100%; display: flex; justify-content: center; }
+        .folha-wrapper { position: relative; flex: none; }
+        .folha-wrapper > .folha-pdf {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: scale(var(--preview-scale, 1));
+            transform-origin: top left;
+            box-shadow: 0 10px 30px #39141930;
         }
-
-        #folha-pdf {
+        .aviso-previa {
+            margin: 0 0 12px;
+            font-size: 13px;
+            color: var(--primary);
+            text-align: center;
+        }
+        .folha-pdf {
             width: var(--pdf-w);
             height: var(--pdf-h);
-            background: #d8a7a3;
-            padding: 3.5mm;
-            box-sizing: border-box;
-            color: #000;
-            font-family: 'Inter', sans-serif;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            overflow: hidden;
+            background: #cb9591;
+            color: var(--primary);
+            padding: 4mm;
             display: flex;
             flex-direction: column;
+            flex: none;
         }
         .folha-interna {
-            background: #fff;
-            border-radius: 10px;
+            background: white;
+            border: 1.5px solid var(--primary);
+            border-radius: 16px;
+            min-height: 0;
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 4mm 5mm;
-            overflow: hidden;
+            padding: 3mm 5.5mm 4mm;
         }
         .header-pdf {
-            display: flex;
-            align-items: stretch;
-            gap: 0;
-            flex-shrink: 0;
-            margin-bottom: 3mm;
-            min-height: 26mm;
+            display: grid;
+            grid-template-columns: minmax(0, 1.06fr) minmax(0, 1.14fr) auto;
+            align-items: center;
+            flex: none;
+            min-height: 23mm;
+            margin-bottom: 2mm;
         }
-        .header-escola-pdf {
-            flex: 0 0 auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding-right: 4mm;
-            white-space: nowrap;
-        }
+        .header-escola-pdf { padding-right: 2mm; overflow-wrap: anywhere; }
         .header-escola-pdf h2 {
             font-size: 13.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #2b0a0e;
-            line-height: 1.25;
+            font-weight: 500;
+            line-height: 1.18;
         }
         .header-escola-pdf h1 {
-            font-size: 19px;
+            font-size: 18px;
             font-weight: 800;
-            text-transform: uppercase;
-            color: var(--primary);
-            line-height: 1.2;
+            line-height: 1.1;
             margin-top: 2px;
         }
         .header-faixas-pdf {
-            flex: 1;
-            display: flex;
-            align-items: stretch;
-            min-width: 0;
-            border-radius: 100px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.24fr) minmax(0, 1fr);
+            border-radius: 32px 0 0 32px;
             overflow: hidden;
-            margin-right: 0;
         }
-        .faixa-serie-pdf {
-            background: var(--primary);
-            color: #fff;
+        .faixa-serie-pdf, .faixa-prof-pdf {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 13mm;
+            padding: 5px 8px;
+            color: white;
             text-align: center;
-            padding: 1.5mm 4mm 1.5mm 5mm;
-            flex-shrink: 0;
-            white-space: nowrap;
+            overflow-wrap: anywhere;
+            line-height: 1.14;
         }
-        .faixa-serie-pdf .l1 { font-size: 14px; font-weight: 800; text-transform: uppercase; line-height: 1.15; }
-        .faixa-serie-pdf .l2 { font-size: 10.5px; font-weight: 700; margin-top: 1px; }
-        .faixa-prof-pdf {
-            background: #b88e8c;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2mm 5mm;
-            flex: 1;
-            min-width: 0;
-            overflow: hidden;
-        }
-        .faixa-prof-pdf .l1 { 
-            font-size: 13px; 
-            font-weight: 800; 
-            line-height: 1.15; 
-            max-width: 100%; 
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .faixa-prof-pdf .l2 { font-size: 9.5px; font-weight: 600; margin-top: 2px; }
+        .faixa-serie-pdf { background: var(--primary); }
+        .faixa-prof-pdf { background: #8b5359; }
+        .header-faixas-pdf .l1 { font-size: 15px; font-weight: 800; }
+        .faixa-serie-pdf .l1 { text-transform: uppercase; }
+        .header-faixas-pdf .l2 { font-size: 10px; font-weight: 700; margin-top: 2px; }
         .foto-prof-box {
-            flex: 0 0 auto;
-            width: 28mm;
-            margin-left: 4mm;
-            border: 2.5px solid var(--primary);
+            width: 20mm;
+            height: 23mm;
+            border: 3px solid var(--primary);
+            background-color: var(--primary-light);
+            background-size: cover;
+            background-position: center;
+        }
+        .quadro-pdf {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: #fff;
-            overflow: hidden;
-        }
-        .foto-prof-box .foto-label {
-            position: absolute;
-            top: 2mm;
-            font-size: 9.5px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 0.5px;
-            z-index: 1;
-        }
-        .foto-prof-pdf {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .grid-pdf { 
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: stretch;
-            gap: 2.2px;
+            flex-direction: column;
             flex: 1;
+            min-height: 0;
+            border: 1px solid var(--primary);
+            border-radius: 12px;
             overflow: hidden;
-            border: 2px solid var(--primary);
-            border-radius: 8px;
-            background: var(--primary);
+            padding: 4px 4px 0;
         }
-        .col-pdf { 
-            background: #fff; 
-            overflow: hidden;
+        .grid-pdf {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+        .col-pdf {
+            --body-size: 11.5px;
+            --title-size: 14.5px;
+            --image-height: 68px;
+            --topic-gap: 5px;
+            --subject-gap: 8px;
             display: flex;
             flex-direction: column;
             flex: 1;
             min-width: 0;
+            padding: 0 4px;
         }
-        .topo-dia { 
-            background: var(--primary); 
-            color: #fff; 
-            text-align: center; 
-            padding: 2mm 1mm; 
-            flex-shrink: 0;
+        .col-pdf:first-child { padding-left: 0; }
+        .col-pdf:last-child { padding-right: 0; }
+        .col-pdf + .col-pdf { border-left: 1px solid #d9babc; }
+        .col-pdf.densa {
+            --body-size: 10.5px;
+            --title-size: 13px;
+            --image-height: 50px;
+            --topic-gap: 4px;
+            --subject-gap: 6px;
         }
-        .topo-dia .dia-nome { font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px; line-height: 1.2; }
-        .topo-dia .dia-data { font-size: 15px; font-weight: 800; line-height: 1.25; margin-top: 1px; }
-        .materia-box { 
-            padding: 4px 5px; 
-            border-bottom: 1px dotted #bbb; 
+        .col-pdf.compacta {
+            --body-size: 10px;
+            --title-size: 12px;
+            --image-height: 35px;
+            --topic-gap: 2px;
+            --subject-gap: 4px;
         }
-        .materia-box:last-child { border-bottom: none; }
-        .materia-tit { font-weight: 700; font-size: 13px; color: var(--primary); margin-bottom: 3px; }
-        .materia-cont { font-size: 10px; line-height: 1.4; color: #222; margin-top: 2px; }
-        .materia-img { max-width: 80%; max-height: 70px; width: auto; height: auto; object-fit: contain; margin: 3px auto; display: block; }
-
-        /* ZONA DE RENDER OCULTA */
+        .topo-dia {
+            background: #80343f;
+            color: white;
+            text-align: center;
+            padding: 4px 2px;
+            flex: none;
+        }
+        .col-pdf:nth-child(even) .topo-dia { background: var(--primary); }
+        .topo-dia .dia-nome { font-size: 9px; font-weight: 600; line-height: 1.2; }
+        .topo-dia .dia-data { font-size: 14px; font-weight: 800; line-height: 1.2; }
+        .conteudo-dia { flex: 1; min-height: 0; overflow: hidden; padding: 8px 4px 2px; }
+        .materia-box + .materia-box {
+            margin-top: var(--subject-gap);
+            padding-top: var(--subject-gap);
+            border-top: 1px solid #e8d6d7;
+        }
+        .materia-tit { font-size: var(--title-size); font-weight: 800; line-height: 1.12; overflow-wrap: anywhere; }
+        .materia-cont { font-size: var(--body-size); line-height: 1.28; margin-top: 4px; overflow-wrap: anywhere; }
+        .topico { position: relative; padding-left: 9px; font-weight: 600; white-space: pre-wrap; }
+        .topico + .topico, .paginas + .topico { margin-top: var(--topic-gap); }
+        .topico::before { content: '•'; position: absolute; left: 0; font-weight: 800; }
+        .paginas { padding-left: 9px; color: #654044; white-space: pre-wrap; }
+        .materia-img { display: block; max-width: 80%; max-height: var(--image-height); margin: 5px auto 0; }
+        .grade-vazia { margin: auto; padding: 12px; font-size: 13px; text-align: center; color: #806369; }
+        .rodape-pdf {
+            flex: none;
+            text-align: center;
+            margin: 0 8px 3px;
+            padding: 5px 0 1px;
+            border-top: 1px solid #e8d6d7;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .hist-abrir {
+            flex: 1;
+            min-width: 0;
+            text-align: left;
+            font: inherit;
+            color: inherit;
+            border: 0;
+            background: none;
+            cursor: pointer;
+        }
+        .materia-acoes { display: flex; justify-content: flex-end; margin: 5px 0 0; }
+        .btn-remover-mat {
+            padding: 5px;
+            border: 0;
+            background: transparent;
+            color: var(--primary);
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .pagina-exportacao {
+            width: var(--pdf-w);
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+        .suporte-exportacao {
+            width: 190mm;
+            height: 131.2mm;
+            flex: none;
+            position: relative;
+        }
+        .suporte-exportacao .folha-pdf {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: scale(0.90476);
+            transform-origin: top left;
+        }
+        .linha-corte {
+            width: 190mm;
+            padding-top: 2px;
+            border-top: 1px dashed #997e80;
+            color: #654044;
+            text-align: right;
+            font-size: 9px;
+        }
         #pdf-render-zone { position: fixed; left: -9999px; top: 0; z-index: -1; background: white; }
 
         /* ========================
@@ -574,7 +612,7 @@
         ======================== */
         @media (max-width: 768px) {
             .layout { height: auto; flex-direction: column; }
-            .mobile-tabs { display: flex; top: 53px; }
+            .mobile-tabs { display: flex; top: 64px; }
             
             .editor {
                 width: 100%;
@@ -603,15 +641,8 @@
                 justify-content: center;
             }
 
-            /* Ajuste da escala da folha no mobile */
-            .folha-wrapper {
-                transform: scale(0.38);
-                transform-origin: top center;
-                margin-bottom: calc((var(--pdf-h) * 0.38) - var(--pdf-h));
-            }
-
             /* Inputs maiores no mobile para evitar zoom automático */
-            input[type="text"], 
+            input[type="text"], input[type="number"], 
             input[type="date"], 
             select, 
             textarea { font-size: 16px !important; }
@@ -620,13 +651,6 @@
             .btn-tool { padding: 11px 16px; font-size: 14px; }
         }
 
-        @media (max-width: 400px) {
-            .folha-wrapper {
-                transform: scale(0.32);
-                transform-origin: top center;
-                margin-bottom: calc((var(--pdf-h) * 0.32) - var(--pdf-h));
-            }
-        }
     </style>
 </head>
 <body>
@@ -667,20 +691,22 @@
 
         <p class="section-title">Dados Gerais</p>
         <div class="card-config">
-            <label>Sua Foto</label>
+            <label for="f-prof">Sua foto</label>
             <input type="file" accept="image/*" onchange="uploadImg('outFoto', this.id, 300)" id="f-prof">
-            <label>Seu Nome no PDF</label>
+            <label for="inNomeProf">Seu nome no PDF</label>
             <input type="text" id="inNomeProf" placeholder="Ex: Maria Silva" oninput="atualizarPrevia()">
-            <label>Escola</label>
+            <label for="inEscola">Escola</label>
             <input type="text" id="inEscola" value="Colégio Elicéu Monteiro Alves" oninput="atualizarPrevia()">
-            <label>Série / Turma</label>
+            <label for="inSerie">Série / Turma</label>
             <select id="inSerie" onchange="atualizarPrevia()">
                 <option value="">Carregando...</option>
             </select>
-            <label>Bimestre</label>
-            <select id="inBimestre" onchange="atualizarPrevia()" style="margin-bottom:0">
+            <label for="inBimestre">Bimestre</label>
+            <select id="inBimestre" onchange="atualizarPrevia()">
                 <option value="">Carregando...</option>
             </select>
+            <label for="inAno">Ano letivo</label>
+            <input type="number" id="inAno" min="1900" max="9999" placeholder="Ano da primeira avaliação" oninput="atualizarPrevia()" style="margin-bottom:0">
         </div>
 
         <p class="section-title">Dias de Avaliação</p>
@@ -710,19 +736,21 @@
     <div class="previa" id="painel-previa">
         <div class="barra-ferramentas">
             <label>
-                <input type="checkbox" id="checkDuplo" checked> 2 por folha A4
+                <input type="checkbox" id="checkDuplo" checked> 2 cópias em A4
             </label>
             <button class="btn-tool btn-save" onclick="salvarNoBanco()">
                 <i data-lucide="save" style="width:15px;height:15px;"></i> Salvar
             </button>
-            <button class="btn-tool btn-pdf" onclick="baixarPDF()">
+            <button class="btn-tool btn-pdf" id="btn-pdf" onclick="baixarPDF()">
                 <i data-lucide="file-down" style="width:15px;height:15px;"></i> Gerar PDF
             </button>
         </div>
 
-        <div class="folha-wrapper">
-            <img src="" id="pdfLogoEscola" alt="logo" style="display:none;">
-            <div id="folha-pdf">
+        <p class="aviso-previa" id="aviso-previa" role="status" hidden></p>
+        <div class="folha-viewport" id="folha-viewport">
+        <div class="folha-wrapper" id="folha-wrapper">
+            <img id="pdfLogoEscola" alt="" hidden>
+            <div class="folha-pdf" id="folha-pdf">
                 <div class="folha-interna">
                     <div class="header-pdf">
                         <div class="header-escola-pdf">
@@ -739,14 +767,16 @@
                                 <div class="l2">Professora</div>
                             </div>
                         </div>
-                        <div class="foto-prof-box">
-                            <span class="foto-label" id="fotoLabel">FOTO</span>
-                            <img src="" class="foto-prof-pdf" id="outFoto" alt="foto" style="display:none;">
-                        </div>
+                        <div class="foto-prof-box" id="foto-prof-box" role="img" aria-label="Foto do docente" hidden></div>
+                        <img id="outFoto" alt="" hidden>
                     </div>
-                    <div class="grid-pdf" id="outGrid"></div>
+                    <div class="quadro-pdf">
+                        <div class="grid-pdf" id="outGrid"></div>
+                        <p class="rodape-pdf">Boa sorte e bons estudos!</p>
+                    </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
 </div>
@@ -754,10 +784,10 @@
 <div id="pdf-render-zone"></div>
 
 <!-- TOAST -->
-<div id="toast"></div>
+<div id="toast" role="status"></div>
 
 <script>
-    lucide.createIcons();
+    window.lucide?.createIcons();
 
     window.trocarAba = (qual, btn) => {
         document.querySelectorAll('.mobile-tabs button').forEach(b => b.classList.remove('active'));
@@ -790,6 +820,23 @@
 
     let disciplinasList = [];
     let diasAtivos = 0;
+    let logoPadrao = '';
+
+    const folha = document.getElementById('folha-pdf');
+    const viewport = document.getElementById('folha-viewport');
+    const wrapper = document.getElementById('folha-wrapper');
+    const grid = document.getElementById('outGrid');
+    const aviso = document.getElementById('aviso-previa');
+
+    new ResizeObserver(() => {
+        if (!viewport.clientWidth) return;
+        const escala = Math.min(1, viewport.clientWidth / folha.offsetWidth);
+        wrapper.style.setProperty('--preview-scale', escala);
+        wrapper.style.width = `${folha.offsetWidth * escala}px`;
+        wrapper.style.height = `${folha.offsetHeight * escala}px`;
+        ajustarConteudo();
+    }).observe(viewport);
+    document.fonts.ready.then(ajustarConteudo);
 
     window.sair = () => { signOut(auth); window.location.href = "index.html"; };
 
@@ -810,12 +857,12 @@
 
             selSerie.innerHTML = '<option value="">Selecione a série</option>';
             sSnap.forEach(d => {
-                selSerie.innerHTML += `<option value="${d.data().nome}">${d.data().nome}</option>`;
+                selSerie.add(new Option(d.data().nome, d.data().nome));
             });
 
             selBimestre.innerHTML = '<option value="">Selecione o bimestre</option>';
             bSnap.forEach(d => {
-                selBimestre.innerHTML += `<option value="${d.data().nome}">${d.data().nome}</option>`;
+                selBimestre.add(new Option(d.data().nome, d.data().nome));
             });
 
             // CORREÇÃO: disciplinas ordenadas de forma consistente
@@ -829,12 +876,13 @@
             try {
                 const escSnap = await getDoc(doc(db, "configuracoes", "escola"));
                 if (escSnap.exists() && escSnap.data().logo) {
-                    document.getElementById('pdfLogoEscola').src = escSnap.data().logo;
+                    logoPadrao = escSnap.data().logo;
+                    document.getElementById('pdfLogoEscola').src = logoPadrao;
                 }
             } catch(e) { console.warn("Logo não encontrado"); }
 
             carregarHistorico(auth.currentUser.email);
-            lucide.createIcons();
+            window.lucide?.createIcons();
             atualizarPrevia();
 
         } catch(e) {
@@ -845,44 +893,52 @@
     // ========================
     // COMPRESSÃO DE IMAGEM
     // ========================
-    async function compress(file, target) {
-        return new Promise((res) => {
-            const r = new FileReader(); 
-            r.readAsDataURL(file);
-            r.onload = (e) => {
-                const img = new Image(); 
-                img.src = e.target.result;
-                img.onload = () => {
-                    const c = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    const s = target / Math.max(w, h);
-                    c.width = Math.round(w * s); 
-                    c.height = Math.round(h * s);
-                    const ctx = c.getContext('2d');
-                    ctx.fillStyle = "#FFFFFF"; 
-                    ctx.fillRect(0, 0, c.width, c.height);
-                    ctx.drawImage(img, 0, 0, c.width, c.height);
-                    res(c.toDataURL('image/jpeg', 0.85));
-                };
-            };
-        });
+    async function compress(file, target, preserveTransparency = false) {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        try {
+            img.src = url;
+            await img.decode();
+            const canvas = document.createElement('canvas');
+            const scale = Math.min(1, target / Math.max(img.naturalWidth, img.naturalHeight));
+            canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+            canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+            const context = canvas.getContext('2d');
+            if (!preserveTransparency) {
+                context.fillStyle = 'white';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL(preserveTransparency ? 'image/webp' : 'image/jpeg', 0.85);
+        } finally {
+            URL.revokeObjectURL(url);
+        }
     }
 
-    window.uploadImg = async (id, inputId, size) => {
-        const file = document.getElementById(inputId).files[0];
-        if (file) { 
-            document.getElementById(id).src = await compress(file, size); 
-            atualizarPrevia(); 
+    async function carregarImagem(inputId, targetId, size, isSubject) {
+        const input = document.getElementById(inputId);
+        const file = input.files[0];
+        if (!file) return;
+        try {
+            const image = await compress(file, size, isSubject);
+            const target = document.getElementById(targetId);
+            if (!target || input.files[0] !== file) return;
+            if (isSubject) {
+                target.value = image;
+                target.closest('.materia-item').querySelector('.btn-remover-imagem').hidden = false;
+            } else {
+                target.src = image;
+            }
+            atualizarPrevia();
+        } catch (error) {
+            if (input.files[0] !== file) return;
+            input.value = '';
+            showToast('Não foi possível abrir essa imagem.', 'error');
         }
-    };
+    }
 
-    window.uploadFotoMat = async (inputId, hidId) => {
-        const file = document.getElementById(inputId).files[0];
-        if (file) { 
-            document.getElementById(hidId).value = await compress(file, 250); 
-            atualizarPrevia(); 
-        }
-    };
+    window.uploadImg = (id, inputId, size) => carregarImagem(inputId, id, size, false);
+    window.uploadFotoMat = (inputId, hidId) => carregarImagem(inputId, hidId, 250, true);
 
     // ========================
     // HISTÓRICO
@@ -910,16 +966,21 @@
                 const bimestre = data.bimestre || '';
                 
                 item.innerHTML = `
-                    <div style="flex:1;min-width:0;overflow:hidden;" onclick='window.loadSch(${JSON.stringify(data)})'>
-                        <strong style="font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${serie}</strong>
-                        <span style="color:var(--text-muted);font-size:11px;">${bimestre}</span>
-                    </div>
-                    <button class="btn-lixeira" onclick="delHist('${d.id}', event)" title="Excluir">
+                    <button type="button" class="hist-abrir">
+                        <strong style="font-size:13px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></strong>
+                        <span style="color:var(--text-muted);font-size:11px;"></span>
+                    </button>
+                    <button type="button" class="btn-lixeira" aria-label="Excluir horário" title="Excluir horário">
                         <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
                     </button>`;
+                const abrir = item.querySelector('.hist-abrir');
+                abrir.querySelector('strong').textContent = serie;
+                abrir.querySelector('span').textContent = bimestre;
+                abrir.addEventListener('click', () => loadSch(data));
+                item.querySelector('.btn-lixeira').addEventListener('click', event => delHist(d.id, event));
                 cont.appendChild(item);
             });
-            lucide.createIcons();
+            window.lucide?.createIcons();
         }, (error) => {
             console.error("Erro ao carregar histórico:", error);
         });
@@ -951,24 +1012,31 @@
 
         document.getElementById('inEscola').value = dados.escola || '';
         document.getElementById('inNomeProf').value = dados.professorNomeManual || dados.professor || '';
+        document.getElementById('inAno').value = dados.anoLetivo || '';
+        document.getElementById('f-prof').value = '';
 
         const selSerie = document.getElementById('inSerie');
         const selBimestre = document.getElementById('inBimestre');
         
         selSerie.value = dados.serie || '';
         if (selSerie.value !== dados.serie && dados.serie) {
-            selSerie.innerHTML += `<option value="${dados.serie}">${dados.serie}</option>`;
+            selSerie.add(new Option(dados.serie, dados.serie));
             selSerie.value = dados.serie;
         }
 
         selBimestre.value = dados.bimestre || '';
         if (selBimestre.value !== dados.bimestre && dados.bimestre) {
-            selBimestre.innerHTML += `<option value="${dados.bimestre}">${dados.bimestre}</option>`;
+            selBimestre.add(new Option(dados.bimestre, dados.bimestre));
             selBimestre.value = dados.bimestre;
         }
 
-        if (dados.logoEscola) document.getElementById('pdfLogoEscola').src = dados.logoEscola;
-        if (dados.fotoProf) document.getElementById('outFoto').src = dados.fotoProf;
+        const logo = document.getElementById('pdfLogoEscola');
+        const foto = document.getElementById('outFoto');
+        const logoSalvo = dados.logoEscola || logoPadrao;
+        if (logoSalvo) logo.src = logoSalvo;
+        else logo.removeAttribute('src');
+        if (dados.fotoProf) foto.src = dados.fotoProf;
+        else foto.removeAttribute('src');
 
         const conteudo = Array.isArray(dados.conteudo) ? dados.conteudo : [];
         conteudo.forEach(dia => {
@@ -988,16 +1056,21 @@
                 const mId = addMateria(idDia);
                 const div = document.getElementById(mId);
                 if (!div) return;
-                div.querySelector('.m-sel').value = mat.nome || '';
+                const select = div.querySelector('.m-sel');
+                select.value = mat.nome || '';
+                if (mat.nome && select.value !== mat.nome) select.add(new Option(mat.nome, mat.nome, false, true));
                 div.querySelector('.m-txt').value = mat.conteudo || '';
-                if (mat.imagem) div.querySelector('.m-img-base64').value = mat.imagem;
+                if (ehImagem(mat.imagem)) {
+                    div.querySelector('.m-img-base64').value = mat.imagem;
+                    div.querySelector('.btn-remover-imagem').hidden = false;
+                }
             });
         });
 
         // Libera o lock e renderiza o preview UMA ÚNICA VEZ com tudo pronto
         _carregando = false;
         atualizarPrevia();
-        lucide.createIcons();
+        window.lucide?.createIcons();
         
         if (window.innerWidth <= 768) {
             const prevBtn = document.querySelector('.mobile-tabs button:nth-child(2)');
@@ -1027,8 +1100,8 @@
                 <span class="dia-titulo">Dia ${diasAtivos + 1}</span>
                 <button class="btn-remover-dia" onclick="removerDia(this)" title="Remover dia">×</button>
             </div>
-            <label>Data</label>
-            <input type="date" class="data-input" onchange="atualizarPrevia()">
+            <label for="${id}-data">Data</label>
+            <input type="date" id="${id}-data" class="data-input" onchange="atualizarPrevia()">
             <div id="m-cont-${id}"></div>
             <button class="btn-add-mat" onclick="addMateria('${id}')">+ Adicionar Matéria</button>`;
         document.getElementById('lista-dias-editor').appendChild(div);
@@ -1057,13 +1130,29 @@
         div.id = mId; 
         div.className = "materia-item";
         div.innerHTML = `
-            <select class="m-sel" onchange="atualizarPrevia()">
+            <select class="m-sel" aria-label="Matéria" onchange="atualizarPrevia()">
                 <option value="">Selecione a matéria</option>
-                ${disciplinasList.map(d => `<option value="${d}">${d}</option>`).join('')}
             </select>
-            <textarea class="m-txt" placeholder="Conteúdo da avaliação..." oninput="atualizarPrevia()" rows="3"></textarea>
-            <input type="file" accept="image/*" onchange="uploadFotoMat(this.id, '${mId}-base')" id="${mId}-file" style="margin-bottom:0;">
-            <input type="hidden" class="m-img-base64" id="${mId}-base">`;
+            <textarea class="m-txt" aria-label="Conteúdo da avaliação" placeholder="Um tópico por linha. Exemplo:\nOrtografia\nPágs. 214 a 218" oninput="atualizarPrevia()" rows="3"></textarea>
+            <input type="file" aria-label="Ilustração da matéria" accept="image/*" onchange="uploadFotoMat(this.id, '${mId}-base')" id="${mId}-file" style="margin-bottom:0;">
+            <input type="hidden" class="m-img-base64" id="${mId}-base">
+            <div class="materia-acoes">
+                <button type="button" class="btn-remover-mat btn-remover-imagem" hidden>Remover ilustração</button>
+                <button type="button" class="btn-remover-mat btn-excluir-materia">Remover matéria</button>
+            </div>`;
+        const select = div.querySelector('.m-sel');
+        disciplinasList.forEach(nome => select.add(new Option(nome, nome)));
+        const removerImagem = div.querySelector('.btn-remover-imagem');
+        removerImagem.addEventListener('click', () => {
+            div.querySelector('.m-img-base64').value = '';
+            div.querySelector('input[type="file"]').value = '';
+            removerImagem.hidden = true;
+            atualizarPrevia();
+        });
+        div.querySelector('.btn-excluir-materia').addEventListener('click', () => {
+            div.remove();
+            atualizarPrevia();
+        });
         document.getElementById(`m-cont-${diaId}`).appendChild(div);
         return mId;
     };
@@ -1071,59 +1160,104 @@
     // ========================
     // ATUALIZAR PRÉVIA
     // ========================
-    window.atualizarPrevia = () => {
-        if (_carregando) return;  // não renderiza enquanto loadSch está montando
-        document.getElementById('outEscola').innerText = 
-            (document.getElementById('inEscola').value || 'Escola').toUpperCase();
-        document.getElementById('outSerie').innerText = 
-            document.getElementById('inSerie').value || '---';
-        document.getElementById('outBimestre').innerText = 
-            document.getElementById('inBimestre').value || '---';
-        document.getElementById('outProf').innerText = 
-            document.getElementById('inNomeProf').value || '---';
+    function criarElemento(tag, classe, texto = '') {
+        const elemento = document.createElement(tag);
+        elemento.className = classe;
+        elemento.textContent = texto;
+        return elemento;
+    }
 
-        // Mostra a foto se houver, senão mostra o placeholder "FOTO"
-        const outFoto = document.getElementById('outFoto');
-        const fotoLabel = document.getElementById('fotoLabel');
-        if (outFoto.src && outFoto.src.startsWith('data:')) {
-            outFoto.style.display = 'block';
-            fotoLabel.style.display = 'none';
-        } else {
-            outFoto.style.display = 'none';
-            fotoLabel.style.display = 'block';
+    function ajustarConteudo() {
+        if (!folha.offsetWidth) return false;
+
+        const diasCheios = [];
+        grid.querySelectorAll('.col-pdf').forEach(coluna => {
+            const conteudo = coluna.querySelector('.conteudo-dia');
+            coluna.classList.remove('densa', 'compacta');
+            if (conteudo.scrollHeight > conteudo.clientHeight) coluna.classList.add('densa');
+            if (conteudo.scrollHeight > conteudo.clientHeight) coluna.classList.add('compacta');
+            if (conteudo.scrollHeight > conteudo.clientHeight) diasCheios.push(coluna.querySelector('.dia-data').textContent);
+        });
+        aviso.hidden = diasCheios.length === 0;
+        aviso.textContent = diasCheios.length
+            ? 'Reduza o conteúdo ou as ilustrações dos dias ' + diasCheios.join(', ') + ' para gerar o PDF completo.'
+            : '';
+        return diasCheios.length === 0;
+    }
+
+    const ehImagem = fonte => /^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(fonte || '');
+    const formatoData = new Intl.DateTimeFormat('pt-BR', {dateStyle: 'short', timeZone: 'UTC'});
+    const formatoDia = new Intl.DateTimeFormat('pt-BR', {weekday: 'long', timeZone: 'UTC'});
+
+    window.atualizarPrevia = () => {
+        if (_carregando) return;
+        const dias = Array.from(document.querySelectorAll('.dia-bloco'), bloco => ({
+            bloco,
+            data: bloco.querySelector('.data-input').value
+        })).sort((a, b) => (a.data || '9999-99-99').localeCompare(b.data || '9999-99-99'));
+
+        const bimestre = document.getElementById('inBimestre').value;
+        const anoManual = document.getElementById('inAno').value;
+        const anoData = dias[0]?.data.slice(0, 4) || '';
+        const anoNoBimestre = /\b(?:19|20)\d{2}\b/.test(bimestre);
+        const periodo = anoManual
+            ? [bimestre.replace(/\s*[-–/]?\s*\b(?:19|20)\d{2}\s*$/, ''), anoManual].filter(Boolean).join(' ')
+            : [bimestre, anoNoBimestre ? '' : anoData].filter(Boolean).join(' ');
+
+        document.getElementById('outEscola').textContent =
+            (document.getElementById('inEscola').value.trim() || 'Escola').toUpperCase();
+        document.getElementById('outSerie').textContent = document.getElementById('inSerie').value || 'Turma';
+        document.getElementById('outBimestre').textContent = periodo || 'Bimestre';
+        document.getElementById('outProf').textContent = document.getElementById('inNomeProf').value.trim() || 'Docente';
+
+        const foto = document.getElementById('outFoto').getAttribute('src');
+        const fotoBox = document.getElementById('foto-prof-box');
+        fotoBox.hidden = !ehImagem(foto);
+        fotoBox.style.backgroundImage = fotoBox.hidden ? '' : 'url("' + foto + '")';
+
+        grid.replaceChildren();
+        if (!dias.length) {
+            grid.append(criarElemento('p', 'grade-vazia', 'Adicione os dias de avaliação para montar o horário.'));
         }
 
-        const grid = document.getElementById('outGrid'); 
-        grid.innerHTML = '';
+        dias.forEach(({bloco, data}) => {
+            const dataFormatada = data ? new Date(data + 'T12:00:00Z') : null;
+            const coluna = criarElemento('div', 'col-pdf');
+            const topo = criarElemento('div', 'topo-dia');
+            topo.append(
+                criarElemento('div', 'dia-nome', dataFormatada ? formatoDia.format(dataFormatada).toUpperCase() : 'AVALIAÇÃO'),
+                criarElemento('div', 'dia-data', dataFormatada ? formatoData.format(dataFormatada) : 'Sem data')
+            );
+            const conteudo = criarElemento('div', 'conteudo-dia');
+            bloco.querySelectorAll('.materia-item').forEach(item => {
+                const nome = item.querySelector('.m-sel').value;
+                if (!nome) return;
 
-        document.querySelectorAll('.dia-bloco').forEach(bl => {
-            const dt = bl.querySelector('.data-input').value;
-            let diaT = "DIA", dtB = "---";
-            if (dt) {
-                const d = new Date(dt + 'T00:00:00');
-                diaT = d.toLocaleDateString('pt-BR', { weekday: 'long' });
-                dtB = d.toLocaleDateString('pt-BR');
-            }
-            const colDiv = document.createElement('div');
-            colDiv.className = 'col-pdf';
-            let html = `<div class="topo-dia">
-                <div class="dia-nome">${diaT.toUpperCase()}</div>
-                <div class="dia-data">${dtB}</div>
-            </div>`;
-            bl.querySelectorAll('.materia-item').forEach(m => {
-                const n = m.querySelector('.m-sel').value;
-                if (n) {
-                    const img = m.querySelector('.m-img-base64').value;
-                    html += `<div class="materia-box">
-                        <div class="materia-tit">${n}</div>
-                        <div class="materia-cont">${m.querySelector('.m-txt').value.replace(/\n/g, '<br>')}</div>
-                        ${img ? `<img src="${img}" class="materia-img" alt="">` : ''}
-                    </div>`;
+                const materia = criarElemento('section', 'materia-box');
+                materia.append(criarElemento('h3', 'materia-tit', nome));
+                const texto = criarElemento('div', 'materia-cont');
+                item.querySelector('.m-txt').value.split(/\r?\n/).forEach(linha => {
+                    const limpa = linha.trim().replace(/^(?:[•●]\s*|[-–]\s+)/, '');
+                    if (!limpa) return;
+                    const paginas = /^(?:p[áa]g(?:ina)?s?\.?|pp?\.)(?:\s|:|\d)/i.test(limpa);
+                    texto.append(criarElemento('div', paginas ? 'paginas' : 'topico', limpa));
+                });
+                if (texto.childElementCount) materia.append(texto);
+
+                const fonte = item.querySelector('.m-img-base64').value;
+                if (ehImagem(fonte)) {
+                    const imagem = criarElemento('img', 'materia-img');
+                    imagem.alt = '';
+                    imagem.addEventListener('load', ajustarConteudo, { once: true });
+                    imagem.src = fonte;
+                    materia.append(imagem);
                 }
+                conteudo.append(materia);
             });
-            colDiv.innerHTML = html;
-            grid.appendChild(colDiv);
+            coluna.append(topo, conteudo);
+            grid.append(coluna);
         });
+        ajustarConteudo();
     };
 
     // ========================
@@ -1154,8 +1288,9 @@
                 escola: document.getElementById('inEscola').value,
                 serie: document.getElementById('inSerie').value,
                 bimestre: document.getElementById('inBimestre').value,
-                logoEscola: document.getElementById('pdfLogoEscola').src || '',
-                fotoProf: document.getElementById('outFoto').src || '',
+                anoLetivo: document.getElementById('inAno').value,
+                logoEscola: document.getElementById('pdfLogoEscola').getAttribute('src') || '',
+                fotoProf: document.getElementById('outFoto').getAttribute('src') || '',
                 conteudo,
                 criadoEm: serverTimestamp()  // CORREÇÃO: garante ordem cronológica no Firebase
             });
@@ -1171,113 +1306,60 @@
     // Permite 2 documentos por folha A4 sem distorções
     // ========================
     window.baixarPDF = async () => {
-        const isD = document.getElementById('checkDuplo').checked;
-        const folhaOriginal = document.getElementById('folha-pdf');
-        const zone = document.getElementById('pdf-render-zone');
-        zone.innerHTML = '';
+        const botao = document.getElementById('btn-pdf');
+        if (botao.disabled) return;
+        if (!grid.querySelector('.materia-box')) {
+            showToast('Selecione pelo menos uma matéria para gerar o horário.', 'error');
+            return;
+        }
+        if (Array.from(grid.querySelectorAll('.dia-data')).some(data => data.textContent === 'Sem data')) {
+            showToast('Preencha a data de todos os dias antes de gerar o PDF.', 'error');
+            return;
+        }
 
-        showToast("Gerando PDF...", "success");
+        const duplo = document.getElementById('checkDuplo').checked;
+        const zone = document.getElementById('pdf-render-zone');
+        botao.disabled = true;
 
         try {
-            if (isD) {
-                // MODO DUPLO: 2 documentos de 21x14.5cm em uma folha A4 (21x29.7cm)
-                // Cada documento ocupa exatamente metade da altura com margem
-                const pagina = document.createElement('div');
-                pagina.style.cssText = `
-                    width: 210mm;
-                    height: 297mm;
-                    background: white;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: space-evenly;
-                    padding: 6mm 10mm;
-                    gap: 0;
-                    box-sizing: border-box;
-                `;
-
-                const makeClone = () => {
-                    const c = folhaOriginal.cloneNode(true);
-                    c.removeAttribute('id');
-                    c.style.cssText = `
-                        width: 190mm !important;
-                        height: 133mm !important;
-                        box-shadow: none !important;
-                        margin: 0;
-                        flex-shrink: 0;
-                    `;
-                    return c;
-                };
-
-                const linha = document.createElement('div');
-                linha.style.cssText = `
-                    width: 190mm;
-                    border-top: 1.5px dashed #999;
-                    position: relative;
-                    flex-shrink: 0;
-                    margin: 2mm 0;
-                `;
-                linha.innerHTML = `<span style="position:absolute;right:0;top:-9px;font-size:9px;color:#999;background:white;padding:0 4px;">✂ CORTE AQUI</span>`;
-
-                pagina.appendChild(makeClone());
-                pagina.appendChild(linha);
-                pagina.appendChild(makeClone());
-                zone.appendChild(pagina);
-
-                await new Promise(r => setTimeout(r, 500));
-
-                const opt = {
-                    margin: 0,
-                    filename: `Horario_${document.getElementById('inSerie').value || 'Escola'}_Duplo.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 3, useCORS: true, logging: false, allowTaint: true },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-
-                await html2pdf().set(opt).from(pagina).save();
-
-            } else {
-                // MODO SIMPLES: 1 documento de 21cm x 14.5cm
-                const pagina = document.createElement('div');
-                pagina.style.cssText = `
-                    width: 210mm;
-                    height: 145mm;
-                    background: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-sizing: border-box;
-                `;
-
-                const c = folhaOriginal.cloneNode(true);
-                c.removeAttribute('id');
-                c.style.cssText = `
-                    width: 190mm !important;
-                    height: 133mm !important;
-                    box-shadow: none !important;
-                    margin: 0;
-                `;
-                pagina.appendChild(c);
-                zone.appendChild(pagina);
-
-                await new Promise(r => setTimeout(r, 500));
-
-                const opt = {
-                    margin: 0,
-                    filename: `Horario_${document.getElementById('inSerie').value || 'Escola'}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 3, useCORS: true, logging: false, allowTaint: true },
-                    jsPDF: { unit: 'mm', format: [210, 145], orientation: 'landscape' }
-                };
-
-                await html2pdf().set(opt).from(pagina).save();
+            await document.fonts.ready;
+            await Promise.all(Array.from(folha.querySelectorAll('.materia-img'), imagem => imagem.decode().catch(() => {})));
+            if (!ajustarConteudo()) {
+                showToast('O conteúdo ultrapassa o espaço do horário. Confira o aviso na prévia.', 'error');
+                return;
             }
 
-        } catch(e) {
-            console.error("Erro ao gerar PDF:", e);
-            showToast("Erro ao gerar PDF.", "error");
+            const pagina = criarElemento('div', 'pagina-exportacao');
+            // Reserva 1 mm para evitar uma página extra por arredondamento na rasterização.
+            pagina.style.height = duplo ? '296mm' : '144mm';
+            const copiarFolha = () => {
+                const suporte = criarElemento('div', 'suporte-exportacao');
+                suporte.append(folha.cloneNode(true));
+                suporte.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                return suporte;
+            };
+            pagina.append(copiarFolha());
+            if (duplo) {
+                const corte = criarElemento('div', 'linha-corte', 'Corte aqui');
+                pagina.append(corte, copiarFolha());
+            }
+            zone.append(pagina);
+
+            const turma = document.getElementById('inSerie').value.replace(/[\\/:*?"<>|]/g, '-').trim();
+            await html2pdf().set({
+                margin: 0,
+                filename: 'Horario_' + (turma || 'Escola') + (duplo ? '_Duplo' : '') + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 3, useCORS: true, logging: false },
+                pagebreak: { mode: [] },
+                jsPDF: { unit: 'mm', format: duplo ? 'a4' : [210, 145], orientation: duplo ? 'portrait' : 'landscape' }
+            }).from(pagina).save();
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            showToast('Erro ao gerar PDF. Tente novamente.', 'error');
         } finally {
-            zone.innerHTML = '';
+            zone.replaceChildren();
+            botao.disabled = false;
         }
     };
 
